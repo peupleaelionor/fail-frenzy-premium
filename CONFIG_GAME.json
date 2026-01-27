@@ -1,0 +1,122 @@
+{
+  "gameConfig": {
+    "title": "Fail Frenzy: The Loop",
+    "version": "1.0.0",
+    "targetPlatforms": ["iOS", "Android"],
+    "minIOSVersion": "13.0",
+    "minAndroidVersion": "8.0"
+  },
+  "gameplay": {
+    "initialDifficulty": 0.5,
+    "minDifficulty": 0.2,
+    "maxDifficulty": 1.0,
+    "difficultyIncrement": 0.05,
+    "difficultyDecrement": 0.05,
+    "loopDuration": 3.0,
+    "restartDelay": 0.3,
+    "obstacleSpawnRate": 1.0,
+    "maxConcurrentObstacles": 5
+  },
+  "scoring": {
+    "basePointsPerObstacle": 10,
+    "streakMultiplierBase": 1.5,
+    "streakMultiplierMax": 5.0,
+    "bonusPointsPerMilestone": 100,
+    "comboMultiplier": 1.25
+  },
+  "difficulty": {
+    "successRateThresholdHigh": 0.85,
+    "successRateThresholdLow": 0.15,
+    "consecutiveSuccessesForIncrease": 3,
+    "consecutiveFailuresForDecrease": 5,
+    "performanceHistorySize": 20,
+    "difficultyLerpSpeed": 0.1
+  },
+  "failStreak": {
+    "milestones": [5, 10, 25, 50, 100, 250, 500, 1000],
+    "resetOnSuccess": false,
+    "displayMilestoneNotification": true,
+    "shareStreakThreshold": 10
+  },
+  "audio": {
+    "masterVolume": 1.0,
+    "musicVolume": 0.7,
+    "sfxVolume": 0.8,
+    "voiceVolume": 0.9,
+    "enableHaptics": true,
+    "hapticIntensity": 1.0,
+    "reducedHapticsAtLowBattery": true,
+    "batteryThreshold": 0.3
+  },
+  "graphics": {
+    "targetFrameRate": 60,
+    "enableVSync": true,
+    "qualityLevel": "high",
+    "particleEffectDensity": 1.0,
+    "enablePostProcessing": true,
+    "enableGlitchEffects": true,
+    "screenResolution": "1080x1920",
+    "orientation": "portrait"
+  },
+  "ui": {
+    "enableTutorial": true,
+    "tutorialSkippable": true,
+    "showFPS": false,
+    "showDebugInfo": false,
+    "enableAccessibility": true,
+    "colorBlindMode": false,
+    "fontSize": 1.0
+  },
+  "monetization": {
+    "enableIAP": true,
+    "enableAds": true,
+    "rewardedAdInterval": 3,
+    "bannerAdInterval": 30,
+    "interstitialAdInterval": 5,
+    "adsPerSession": 5,
+    "pricePointsUSD": [0.99, 1.99, 2.99, 4.99, 6.99, 9.99, 14.99, 19.99],
+    "enableDynamicPricing": true,
+    "enablePriceOptimization": true
+  },
+  "analytics": {
+    "enableAnalytics": true,
+    "enableCrashReporting": true,
+    "enablePerformanceMonitoring": true,
+    "flushIntervalSeconds": 60,
+    "maxEventQueueSize": 1000,
+    "enableDebugLogging": false
+  },
+  "social": {
+    "enableSharing": true,
+    "enableLeaderboard": true,
+    "enableFriendChallenge": true,
+    "enableSocialNotifications": true,
+    "shareableStreakThreshold": 5,
+    "leaderboardRefreshInterval": 300,
+    "maxLeaderboardEntries": 1000
+  },
+  "cloud": {
+    "enableCloudSave": true,
+    "enableCloudSync": true,
+    "syncInterval": 300,
+    "conflictResolutionStrategy": "merge_max_values",
+    "enableOfflineMode": true,
+    "enableAutoBackup": true
+  },
+  "performance": {
+    "targetMemoryUsageMB": 150,
+    "enableMemoryProfiling": false,
+    "enableGarbageCollectionOptimization": true,
+    "objectPoolSize": 100,
+    "enableAssetBundling": true,
+    "enableResourceCompression": true
+  },
+  "testing": {
+    "enableTestMode": false,
+    "enableDebugMenu": false,
+    "skipTutorial": false,
+    "unlockAllCosmetics": false,
+    "infiniteMoney": false,
+    "logAllEvents": false
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "cosmetics": [
+    {
+      "id": "golden_aura",
+      "name": "Golden Aura",
+      "type": "effect",
+      "description": "Unlock at 5 fail streak",
+      "unlockThreshold": 5,
+      "rarity": "common",
+      "price": 0,
+      "premiumPrice": 2.99,
+      "icon": "sprites/cosmetics/golden_aura.png",
+      "preview": "sprites/cosmetics/golden_aura_preview.png",
+      "color": "#FFD700",
+      "animationSpeed": 1.2
+    },
+    {
+      "id": "neon_trail",
+      "name": "Neon Trail",
+      "type": "effect",
+      "description": "Unlock at 10 fail streak",
+      "unlockThreshold": 10,
+      "rarity": "uncommon",
+      "price": 0,
+      "premiumPrice": 4.99,
+      "icon": "sprites/cosmetics/neon_trail.png",
+      "preview": "sprites/cosmetics/neon_trail_preview.png",
+      "color": "#00FFFF",
+      "animationSpeed": 1.5
+    },
+    {
+      "id": "glitch_effect",
+      "name": "Glitch Effect",
+      "type": "effect",
+      "description": "Unlock at 25 fail streak",
+      "unlockThreshold": 25,
+      "rarity": "rare",
+      "price": 0,
+      "premiumPrice": 6.99,
+      "icon": "sprites/cosmetics/glitch_effect.png",
+      "preview": "sprites/cosmetics/glitch_effect_preview.png",
+      "color": "#FF00FF",
+      "animationSpeed": 2.0
+    },
+    {
+      "id": "legendary_status",
+      "name": "Legendary Status",
+      "type": "badge",
+      "description": "Unlock at 50 fail streak",
+      "unlockThreshold": 50,
+      "rarity": "epic",
+      "price": 0,
+      "premiumPrice": 9.99,
+      "icon": "sprites/cosmetics/legendary_status.png",
+      "preview": "sprites/cosmetics/legendary_status_preview.png",
+      "color": "#FFD700",
+      "animationSpeed": 1.0
+    },
+    {
+      "id": "mythical_form",
+      "name": "Mythical Form",
+      "type": "character_skin",
+      "description": "Unlock at 100 fail streak",
+      "unlockThreshold": 100,
+      "rarity": "legendary",
+      "price": 0,
+      "premiumPrice": 14.99,
+      "icon": "sprites/cosmetics/mythical_form.png",
+      "preview": "sprites/cosmetics/mythical_form_preview.png",
+      "color": "#FF6600",
+      "animationSpeed": 1.8
+    },
+    {
+      "id": "premium_neon_pack",
+      "name": "Premium Neon Pack",
+      "type": "bundle",
+      "description": "Exclusive neon cosmetics bundle",
+      "unlockThreshold": 0,
+      "rarity": "legendary",
+      "price": 0,
+      "premiumPrice": 19.99,
+      "icon": "sprites/cosmetics/neon_pack.png",
+      "preview": "sprites/cosmetics/neon_pack_preview.png",
+      "color": "#00FFFF",
+      "contents": ["neon_trail", "glitch_effect"]
+    },
+    {
+      "id": "rainbow_explosion",
+      "name": "Rainbow Explosion",
+      "type": "effect",
+      "description": "Colorful fail explosion effect",
+      "unlockThreshold": 0,
+      "rarity": "epic",
+      "price": 0,
+      "premiumPrice": 7.99,
+      "icon": "sprites/cosmetics/rainbow_explosion.png",
+      "preview": "sprites/cosmetics/rainbow_explosion_preview.png",
+      "color": "#FF00FF",
+      "animationSpeed": 2.5
+    },
+    {
+      "id": "dark_mode_theme",
+      "name": "Dark Mode Theme",
+      "type": "ui_theme",
+      "description": "Dark UI theme for gameplay",
+      "unlockThreshold": 0,
+      "rarity": "common",
+      "price": 0,
+      "premiumPrice": 1.99,
+      "icon": "sprites/cosmetics/dark_mode.png",
+      "preview": "sprites/cosmetics/dark_mode_preview.png",
+      "color": "#1a1a1a",
+      "animationSpeed": 1.0
+    }
+  ],
+  "rarityWeights": {
+    "common": 0.4,
+    "uncommon": 0.3,
+    "rare": 0.2,
+    "epic": 0.07,
+    "legendary": 0.03
+  },
+  "shopRotation": {
+    "rotationIntervalHours": 24,
+    "featuredSlots": 3,
+    "randomSlots": 5
+  }
+}
