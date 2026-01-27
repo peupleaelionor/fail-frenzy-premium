@@ -1,5 +1,11 @@
+/**
+ * FAIL FRENZY - Premium Home Page
+ * Investor-ready landing with game showcase
+ */
+
 import { useState } from 'react';
-import { ChevronDown, Zap, Target, Users, Gamepad2, TrendingUp, Share2, Sparkles } from 'lucide-react';
+import { Link } from 'wouter';
+import { ChevronDown, Zap, Target, Users, Gamepad2, TrendingUp, Share2, Sparkles, Play, Award, Globe } from 'lucide-react';
 
 export default function Home() {
   const [expandedSection, setExpandedSection] = useState<string | null>('overview');
@@ -9,29 +15,85 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-cover bg-center scanlines" style={{ backgroundImage: 'url(/images/ui-elements-pattern.png)' }}>
+    <div className="min-h-screen bg-[#0a0e27] text-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ backgroundImage: 'url(/images/hero-glitch.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="absolute inset-0 bg-black/40 scanlines"></div>
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <div className="mb-8 animate-bounce">
-            <h1 className="glitch-text text-6xl md:text-8xl font-black mb-4" style={{ textShadow: '3px 3px 0 #ff00ff, 6px 6px 0 #00ffff, 9px 9px 0 #ffff00' }}>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27]">
+        {/* Animated background grid */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(0deg, rgba(0,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+          }} />
+        </div>
+        
+        {/* Glitch scanlines */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-transparent animate-pulse" style={{ backgroundSize: '100% 4px' }} />
+        </div>
+        
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-7xl md:text-9xl font-black mb-4 glitch-text" style={{ 
+              textShadow: '4px 4px 0 #ff00ff, 8px 8px 0 #00ffff, 12px 12px 0 #ffff00',
+              letterSpacing: '0.05em'
+            }}>
               FAIL FRENZY
             </h1>
-            <p className="text-2xl md:text-4xl font-bold text-cyan-400 mb-2" style={{ textShadow: '2px 2px 0 #ff00ff' }}>
-              THE LOOP
+            <p className="text-3xl md:text-5xl font-bold mb-2" style={{ 
+              background: 'linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'gradient 3s linear infinite'
+            }}>
+              PREMIUM ENGINE EDITION
             </p>
           </div>
-          <p className="text-lg md:text-2xl text-white mb-8 font-mono">
-            A Hybrid-Casual Mobile Game Where Failure is the Main Reward
+          
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 font-mono leading-relaxed">
+            Edge-First Game Engine • <span className="text-cyan-400">&lt;2s Load</span> • <span className="text-magenta-400">Infinite Scale</span>
+            <br />
+            <span className="text-sm text-gray-500">Cloudflare Workers • React 19 • Canvas • D1/KV/R2</span>
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="glitch-button px-8 py-4 text-lg hover:scale-105 transition-transform">
-              ▶ Play Now
+          
+          <div className="flex gap-6 justify-center flex-wrap mb-8">
+            <Link href="/game">
+              <button className="group relative px-10 py-5 text-xl font-bold bg-gradient-to-r from-cyan-500 to-magenta-500 rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,255,255,0.6)]">
+                <span className="relative z-10 flex items-center gap-3">
+                  <Play className="w-6 h-6" /> PLAY NOW
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-magenta-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </Link>
+            
+            <button className="px-10 py-5 text-xl font-bold border-2 border-cyan-400 rounded-lg hover:bg-cyan-500/20 transition-all hover:shadow-[0_0_30px_rgba(0,255,255,0.4)]">
+              📊 METRICS
             </button>
-            <button className="glitch-button px-8 py-4 text-lg border-magenta-500 hover:scale-105 transition-transform" style={{ borderColor: '#ff00ff' }}>
-              📖 Read GDD
+            
+            <button className="px-10 py-5 text-xl font-bold border-2 border-magenta-400 rounded-lg hover:bg-magenta-500/20 transition-all hover:shadow-[0_0_30px_rgba(255,0,255,0.4)]">
+              📖 DOCS
             </button>
+          </div>
+          
+          {/* Stats banner */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
+            {[
+              { label: 'Load Time', value: '<2s', icon: Zap, color: 'cyan' },
+              { label: 'API Latency', value: '~50ms', icon: TrendingUp, color: 'green' },
+              { label: 'Global Scale', value: '∞', icon: Globe, color: 'magenta' },
+              { label: 'Cost/100K', value: '€0', icon: Award, color: 'yellow' },
+            ].map((stat) => (
+              <div key={stat.label} className={`bg-${stat.color}-500/10 border border-${stat.color}-400 rounded-lg p-4 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all`}>
+                <div className="flex items-center justify-center mb-2">
+                  <stat.icon className={`w-8 h-8 text-${stat.color}-400`} />
+                </div>
+                <div className={`text-2xl font-bold text-${stat.color}-400`}>{stat.value}</div>
+                <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

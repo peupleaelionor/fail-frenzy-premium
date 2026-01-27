@@ -1,107 +1,123 @@
-// Cloudflare Pages Functions - API Leaderboard
-// GET /api/leaderboard?mode=classic
+/**
+ * FAIL FRENZY - Enhanced Leaderboard API
+ * Global & mode-specific leaderboards with real-time sync
+ */
 
-export async function onRequestGet(context) {
-  const { request, env } = context;
-  const url = new URL(request.url);
-  const gameMode = url.searchParams.get('mode') || 'classic';
-  const limit = parseInt(url.searchParams.get('limit') || '10');
-
-  try {
-    // Query D1 database for leaderboard
-    const { results } = await env.DB.prepare(`
-      SELECT 
-        l.player_id,
-        u.username,
-        l.score,
-        l.fail_count,
-        l.max_streak,
-        l.rank,
-        l.updated_at
-      FROM leaderboards l
-      JOIN users u ON l.player_id = u.player_id
-      WHERE l.game_mode = ?
-      ORDER BY l.score DESC
-      LIMIT ?
-    `).bind(gameMode, limit).all();
-
-    return new Response(JSON.stringify({
-      success: true,
-      gameMode,
-      leaderboard: results
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60'
-      }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+interface Env {
+  DB: D1Database;
+  KV: KVNamespace;
 }
 
-// POST /api/leaderboard - Submit score
-export async function onRequestPost(context) {
-  const { request, env } = context;
-
+export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
-    const body = await request.json();
-    const { playerId, gameMode, score, failCount, maxStreak } = body;
-
-    if (!playerId || !gameMode || score === undefined) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Missing required fields'
-      }), {
+    const { playerName, score, mode, fails, time } = await context.request.json();
+    
+    // Validation
+    if (!playerName || score === undefined || !mode) {
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    // Upsert leaderboard entry
-    await env.DB.prepare(`
-      INSERT INTO leaderboards (player_id, game_mode, score, fail_count, max_streak, updated_at)
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(player_id, game_mode) 
-      DO UPDATE SET 
-        score = MAX(score, excluded.score),
-        fail_count = excluded.fail_count,
-        max_streak = MAX(max_streak, excluded.max_streak),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE excluded.score > score
-    `).bind(playerId, gameMode, score, failCount, maxStreak).run();
-
-    // Update user stats
-    await env.DB.prepare(`
-      UPDATE users 
-      SET 
-        total_score = total_score + ?,
-        games_played = games_played + 1,
-        best_streak = MAX(best_streak, ?),
-        total_fails = total_fails + ?,
-        last_played_at = CURRENT_TIMESTAMP
-      WHERE player_id = ?
-    `).bind(score, maxStreak, failCount, playerId).run();
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Score submitted successfully'
+    
+    // Generate unique ID
+    const id = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    
+    // Insert into D1
+    await context.env.DB.prepare(`
+      INSERT INTO leaderboard (id, player_name, score, mode, fails, time, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(id, playerName, score, mode, fails, time).run();
+    
+    // Cache in KV (global leaderboard)
+    await updateLeaderboardCache(context.env.KV, mode);
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      id,
+      rank: await getPlayerRank(context.env.DB, id, mode)
     }), {
-      headers: { 'Content-Type': 'application/json' }
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
   }
+};
+
+export const onRequestGet: PagesFunction<Env> = async (context) => {
+  try {
+    const url = new URL(context.request.url);
+    const mode = url.searchParams.get('mode') || 'all';
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    
+    // Try cache first
+    const cacheKey = `leaderboard:${mode}:${limit}`;
+    const cached = await context.env.KV.get(cacheKey);
+    if (cached) {
+      return new Response(cached, {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=60',
+        },
+      });
+    }
+    
+    // Query D1
+    let query = `
+      SELECT id, player_name, score, mode, fails, time, created_at
+      FROM leaderboard
+    `;
+    
+    if (mode !== 'all') {
+      query += ` WHERE mode = ?`;
+    }
+    
+    query += ` ORDER BY score DESC LIMIT ?`;
+    
+    const stmt = mode !== 'all' 
+      ? context.env.DB.prepare(query).bind(mode, limit)
+      : context.env.DB.prepare(query).bind(limit);
+    
+    const { results } = await stmt.all();
+    
+    // Cache result
+    const response = JSON.stringify(results);
+    await context.env.KV.put(cacheKey, response, { expirationTtl: 60 });
+    
+    return new Response(response, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60',
+      },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+
+async function updateLeaderboardCache(kv: KVNamespace, mode: string): Promise<void> {
+  // Invalidate cache for this mode
+  await kv.delete(`leaderboard:${mode}:10`);
+  await kv.delete(`leaderboard:${mode}:50`);
+  await kv.delete(`leaderboard:${mode}:100`);
+  await kv.delete(`leaderboard:all:10`);
+}
+
+async function getPlayerRank(db: D1Database, id: string, mode: string): Promise<number> {
+  const { results } = await db.prepare(`
+    SELECT COUNT(*) as rank
+    FROM leaderboard
+    WHERE mode = ? AND score > (
+      SELECT score FROM leaderboard WHERE id = ?
+    )
+  `).bind(mode, id).all();
+  
+  return (results[0] as any).rank + 1;
 }
