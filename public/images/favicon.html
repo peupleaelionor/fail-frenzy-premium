@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; padding: 0; background: #0a0e27; }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <rect width="64" height="64" fill="#0a0e27"/>
+    <circle cx="32" cy="32" r="24" fill="none" stroke="#00ffff" stroke-width="3" filter="url(#glow)"/>
+    <path d="M 24 24 L 36 24 L 36 28 L 28 28 L 28 32 L 34 32 L 34 36 L 28 36 L 28 44 L 24 44 Z" fill="#ff00ff" filter="url(#glow)"/>
+  </svg>
+</body>
+</html>
