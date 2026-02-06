@@ -19,10 +19,10 @@ const LoadingScreen: React.FC<{ progress: number }> = ({ progress }) => {
       style={{ background: '#050818' }}>
       {/* Logo */}
       <div className="mb-8">
-        <img
-          src="/images/assets/pulse_clicker_logo_512.png"
+          <img
+          src="/images/assets/logo-skull-256.png"
           alt="Loading"
-          className="w-24 h-24 sm:w-32 sm:h-32 mx-auto"
+          className="w-24 h-auto sm:w-32 mx-auto"
           style={{
             filter: 'drop-shadow(0 0 30px rgba(0,240,255,0.6))',
             animation: 'spin 3s linear infinite',
@@ -216,7 +216,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, assets, onScoreUpd
       {isPaused && !showGameOver && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.92)', backdropFilter: 'blur(8px)' }}>
           <div className="text-center px-6">
-            <img src="/images/assets/pulse_clicker_logo_512.png" alt="Paused" className="w-16 h-16 mx-auto mb-4 opacity-60" style={{ filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.4))' }} />
+            <img src="/images/assets/logo-skull-256.png" alt="Paused" className="w-16 h-auto mx-auto mb-4 opacity-60" style={{ filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.4))' }} />
             <h2 className="text-4xl sm:text-5xl font-black mb-2" style={{ color: '#00f0ff', textShadow: '0 0 40px rgba(0,240,255,0.6)' }}>
               PAUSED
             </h2>
@@ -246,8 +246,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, assets, onScoreUpd
         <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.95)', backdropFilter: 'blur(12px)' }}>
           <div className="text-center px-6 w-full max-w-sm">
             {/* Skull logo */}
-            <img src="/images/assets/logo-skull.jpeg" alt="Game Over" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full" 
-              style={{ border: '2px solid rgba(255,45,123,0.4)', boxShadow: '0 0 30px rgba(255,45,123,0.3)', filter: 'saturate(1.3)' }} />
+            <img src="/images/assets/logo-skull-512.png" alt="Game Over" className="w-24 h-auto sm:w-32 mx-auto mb-4" 
+              style={{ filter: 'drop-shadow(0 0 25px rgba(255,45,123,0.5)) saturate(1.3)' }} />
             
             <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: '#ff2d7b', textShadow: '0 0 40px rgba(255,45,123,0.6)' }}>
               GAME OVER
@@ -451,7 +451,7 @@ export const GamePage: React.FC = () => {
         <div className="max-w-[900px] mx-auto flex items-center justify-between">
           <Link href="/">
             <div className="flex items-center gap-2.5 cursor-pointer group">
-              <img src="/images/assets/pulse_clicker_logo_512.png" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9 transition-transform group-hover:rotate-12"
+              <img src="/images/assets/logo-skull-256.png" alt="Logo" className="w-8 h-auto sm:w-9 transition-transform group-hover:rotate-12"
                 style={{ filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.5))' }} />
               <span className="text-xl sm:text-2xl font-black tracking-tight">
                 <span style={{ color: '#00f0ff', textShadow: '0 0 15px rgba(0,240,255,0.5)' }}>FAIL</span>
@@ -485,7 +485,7 @@ export const GamePage: React.FC = () => {
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8 sm:mb-10">
               {/* Logo showcase */}
-              <img src="/images/assets/pulse_clicker_logo_512.png" alt="Fail Frenzy" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4"
+              <img src="/images/assets/logo-skull-512.png" alt="Fail Frenzy" className="w-24 h-auto sm:w-32 mx-auto mb-4"
                 style={{ filter: 'drop-shadow(0 0 25px rgba(0,240,255,0.5))' }} />
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 tracking-tight">
                 <span style={{

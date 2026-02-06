@@ -32,10 +32,14 @@ export class AssetLoader {
     logo: '/images/assets/pulse_clicker_logo_512.png',
     button_play: '/images/assets/button_jouer_pulse_2.png',
     logo_skull: '/images/assets/logo-skull.jpeg',
+    skull_icon: '/images/assets/logo-skull-256.png',
+    skull_logo: '/images/assets/logo-skull-512.png',
+    skull_cropped: '/images/assets/logo-skull-cropped.png',
     
     // Backgrounds
     bg_arcade: '/images/assets/hero-arcade-room.jpeg',
     banner_gameover: '/images/assets/banner-game-over.jpeg',
+    promo_banner: '/images/assets/promo-banner.jpeg',
     ui_pattern: '/images/assets/ui-pattern-arcade.jpeg',
   };
 
