@@ -22,6 +22,7 @@ import { ParticleSystem } from '../systems/ParticleSystem';
 import { PowerUpSystem, PowerUp } from '../systems/PowerUpSystem';
 import { AssetLoader } from './AssetLoader';
 import { getConfig, pickObstacleType, type GameConfig } from './CONFIG';
+import { getSelectedSkin, type SkinDefinition } from './SkinSystem';
 
 // ============================================================
 // TYPES
@@ -243,6 +244,9 @@ export class FailFrenzyGame {
   // Dasher dash state
   private dasherTimers: Map<string, { timer: number; dashing: boolean; dashTimer: number }> = new Map();
 
+  // Active skin
+  private activeSkin: SkinDefinition;
+
   // FPS tracking for debug
   private fpsHistory: number[] = [];
   private lastFrameTime: number = 0;
@@ -293,6 +297,7 @@ export class FailFrenzyGame {
     this.spawnTimer = 0;
     this.powerUpSpawnTimer = 0;
 
+    this.activeSkin = getSelectedSkin();
     this.loadHighScores();
     this.init();
   }
@@ -1126,12 +1131,14 @@ export class FailFrenzyGame {
       ctx.globalAlpha = pt.alpha * progress * 0.6;
       ctx.translate(pt.x, pt.y);
 
-      // Draw diamond trail point
+      // Draw diamond trail point with skin colors
+      const skin = this.activeSkin;
+      const trailColor = skin.trail.color;
       if (this.cfg.player.shape === 'diamond') {
         const s = pt.size * progress;
         ctx.shadowBlur = 12;
-        ctx.shadowColor = pt.color;
-        ctx.fillStyle = pt.color;
+        ctx.shadowColor = trailColor;
+        ctx.fillStyle = trailColor;
         ctx.beginPath();
         ctx.moveTo(0, -s);
         ctx.lineTo(s * 0.7, 0);
@@ -1142,8 +1149,8 @@ export class FailFrenzyGame {
       } else {
         const s = pt.size * progress;
         ctx.shadowBlur = 10;
-        ctx.shadowColor = pt.color;
-        ctx.fillStyle = pt.color;
+        ctx.shadowColor = trailColor;
+        ctx.fillStyle = trailColor;
         ctx.beginPath();
         ctx.arc(0, 0, s, 0, Math.PI * 2);
         ctx.fill();
@@ -1158,19 +1165,30 @@ export class FailFrenzyGame {
   private renderPlayer(ctx: CanvasRenderingContext2D, time: number): void {
     if (!this.player) return;
 
+    // Refresh skin (may change from Game Over screen)
+    this.activeSkin = getSelectedSkin();
+    const skin = this.activeSkin;
+
     const isInvincible = this.player.components.get('invincible');
     const img = this.assets.get('player');
 
     ctx.save();
     ctx.translate(this.player.x, this.player.y);
-    ctx.scale(this.player.scale, this.player.scale);
 
-    // Energy aura (breathing glow)
-    if (this.cfg.player.glowEnabled) {
+    // Breathing scale from skin
+    let breathScale = this.player.scale;
+    if (skin.effects.breathing) {
+      breathScale *= 0.95 + 0.1 * Math.sin(time * skin.effects.breathingSpeed * Math.PI * 2);
+    }
+    ctx.scale(breathScale, breathScale);
+
+    // Energy aura (glow from skin)
+    if (this.cfg.player.glowEnabled && skin.core.glowIntensity > 0) {
       const auraSize = this.player.width * (1.8 + Math.sin(time * 4) * 0.15);
+      const glowColor = skin.core.glowColor;
       const auraGrad = ctx.createRadialGradient(0, 0, this.player.width * 0.15, 0, 0, auraSize / 2);
-      auraGrad.addColorStop(0, this.player.color + '40');
-      auraGrad.addColorStop(0.6, this.player.color + '15');
+      auraGrad.addColorStop(0, glowColor + '40');
+      auraGrad.addColorStop(0.6, glowColor + '15');
       auraGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = auraGrad;
       ctx.fillRect(-auraSize / 2, -auraSize / 2, auraSize, auraSize);
@@ -1214,18 +1232,22 @@ export class FailFrenzyGame {
     ctx.restore();
   }
 
-  /** Diamond/losange shape — distinctive player identity */
+  /** Diamond/losange shape — uses active skin colors */
   private drawDiamondPlayer(ctx: CanvasRenderingContext2D, time: number): void {
     if (!this.player) return;
     const s = this.player.width / 2;
-    const color = this.player.color;
+    const skin = this.activeSkin;
+    const coreColor = skin.core.color;
+    const secColor = skin.core.secondaryColor;
+    const glowColor = skin.core.glowColor;
+    const glowI = skin.core.glowIntensity;
 
     // Outer glow layer
     ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = color;
-    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.3 * glowI;
+    ctx.shadowBlur = 25 * glowI;
+    ctx.shadowColor = glowColor;
+    ctx.fillStyle = coreColor;
     ctx.beginPath();
     ctx.moveTo(0, -s * 1.3);
     ctx.lineTo(s * 0.9, 0);
@@ -1235,12 +1257,15 @@ export class FailFrenzyGame {
     ctx.fill();
     ctx.restore();
 
-    // Inner glow layer
+    // Inner gradient layer
     ctx.save();
     ctx.globalAlpha = 0.7;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = color;
-    ctx.fillStyle = color;
+    ctx.shadowBlur = 15 * glowI;
+    ctx.shadowColor = glowColor;
+    const grad = ctx.createLinearGradient(-s, -s, s, s);
+    grad.addColorStop(0, coreColor);
+    grad.addColorStop(1, secColor);
+    ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.moveTo(0, -s * 1.1);
     ctx.lineTo(s * 0.75, 0);
@@ -1250,12 +1275,12 @@ export class FailFrenzyGame {
     ctx.fill();
     ctx.restore();
 
-    // Core (white center)
+    // Core highlight
     ctx.save();
-    ctx.globalAlpha = 0.95;
+    ctx.globalAlpha = 0.85;
     ctx.shadowBlur = 8;
     ctx.shadowColor = '#ffffff';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.beginPath();
     ctx.moveTo(0, -s * 0.7);
     ctx.lineTo(s * 0.48, 0);
@@ -1267,10 +1292,10 @@ export class FailFrenzyGame {
 
     // Neon border
     ctx.save();
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = glowColor;
     ctx.lineWidth = 2.5;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = color;
+    ctx.shadowBlur = 12 * glowI;
+    ctx.shadowColor = glowColor;
     ctx.beginPath();
     ctx.moveTo(0, -s * 1.15);
     ctx.lineTo(s * 0.78, 0);
@@ -1279,6 +1304,53 @@ export class FailFrenzyGame {
     ctx.closePath();
     ctx.stroke();
     ctx.restore();
+
+    // Scanlines effect (Hologram skin)
+    if (skin.effects.scanlines) {
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      for (let y = -s * 1.3; y < s * 1.3; y += 4) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(-s, y, s * 2, 1);
+      }
+      ctx.restore();
+    }
+
+    // Particle orbits (Gold Reactor, Legend, Neon Inferno)
+    if (skin.effects.particles && skin.effects.particleColor) {
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      for (let i = 0; i < 6; i++) {
+        const angle = (time * 2.5 + i * 1.047) % (Math.PI * 2);
+        const dist = s * 1.2 + Math.sin(time * 3 + i) * s * 0.2;
+        const px = Math.cos(angle) * dist;
+        const py = Math.sin(angle) * dist;
+        ctx.fillStyle = skin.effects.particleColor;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = skin.effects.particleColor;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Distortion effect (Void Core)
+    if (skin.effects.distortion) {
+      ctx.save();
+      ctx.globalAlpha = 0.08;
+      ctx.strokeStyle = glowColor;
+      ctx.lineWidth = 1;
+      const distort = Math.sin(time * 2) * 3;
+      ctx.beginPath();
+      ctx.moveTo(distort, -s * 1.3);
+      ctx.lineTo(s * 0.9 + distort, distort);
+      ctx.lineTo(distort, s * 1.3);
+      ctx.lineTo(-s * 0.9 + distort, distort);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   /** Triangle shape — alternative player identity */
