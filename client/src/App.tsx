@@ -1,21 +1,20 @@
 /**
  * FAIL FRENZY - Main Application
  * Premium game launcher with full integration
+ * Uses hash-based routing for GitHub Pages compatibility
  */
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Router as WouterRouter } from "wouter";
-
-// Base path for GitHub Pages deployment
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import { GamePage } from "./game/GameComponents";
 
-function Router() {
+function AppRouter() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
@@ -33,8 +32,8 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
-          <WouterRouter base={BASE_PATH}>
-            <Router />
+          <WouterRouter hook={useHashLocation}>
+            <AppRouter />
           </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>
