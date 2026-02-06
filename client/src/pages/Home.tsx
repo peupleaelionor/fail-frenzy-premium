@@ -99,7 +99,7 @@ export default function Home() {
           {/* Premium Logo */}
           <div className="mb-6 sm:mb-8">
             <img 
-              src="/images/assets/pulse_clicker_logo_512.png" 
+              src={`${import.meta.env.BASE_URL}images/assets/pulse_clicker_logo_512.png`} 
               alt="Fail Frenzy Premium" 
               className="w-28 sm:w-36 md:w-44 mx-auto"
               style={{
@@ -150,7 +150,7 @@ export default function Home() {
             <Link href="/game">
               <button className="group relative transition-all duration-300 hover:scale-110 active:scale-95">
                 <img 
-                  src="/images/assets/button_jouer_pulse_2.png" 
+                  src={`${import.meta.env.BASE_URL}images/assets/button_jouer_pulse_2.png`} 
                   alt="JOUER" 
                   className="w-48 sm:w-56 md:w-64"
                   style={{
@@ -209,28 +209,28 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-16 max-w-3xl mx-auto">
             <div className="text-center group">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
-                <img src="/images/assets/pulse_clicker_logo_512.png" alt="Player" className="w-full h-full"
+                <img src={`${import.meta.env.BASE_URL}images/assets/pulse_clicker_logo_512.png`} alt="Player" className="w-full h-full"
                   style={{ filter: 'drop-shadow(0 0 15px rgba(0,240,255,0.5))' }} />
               </div>
               <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#00f0ff' }}>PLAYER</p>
             </div>
             <div className="text-center group">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
-                <img src="/images/assets/target_fire_glow.png" alt="Fire Target" className="w-full h-full"
+                <img src={`${import.meta.env.BASE_URL}images/assets/target_fire_glow.png`} alt="Fire Target" className="w-full h-full"
                   style={{ filter: 'drop-shadow(0 0 15px rgba(255,102,0,0.5))' }} />
               </div>
               <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#ff6600' }}>FIRE TARGET</p>
             </div>
             <div className="text-center group">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
-                <img src="/images/assets/target_classic_glow.png" alt="Classic Target" className="w-full h-full"
+                <img src={`${import.meta.env.BASE_URL}images/assets/target_classic_glow.png`} alt="Classic Target" className="w-full h-full"
                   style={{ filter: 'drop-shadow(0 0 15px rgba(0,100,255,0.5))' }} />
               </div>
               <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#0066ff' }}>CLASSIC TARGET</p>
             </div>
             <div className="text-center group">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
-                <img src="/images/assets/target_neon_glow.png" alt="Neon Power-up" className="w-full h-full"
+                <img src={`${import.meta.env.BASE_URL}images/assets/target_neon_glow.png`} alt="Neon Power-up" className="w-full h-full"
                   style={{ filter: 'drop-shadow(0 0 15px rgba(255,0,255,0.5))' }} />
               </div>
               <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#ff00ff' }}>POWER-UP</p>
@@ -385,12 +385,12 @@ export default function Home() {
           {/* Hit effect showcase */}
           <div className="flex items-center justify-center gap-8 sm:gap-12 mb-8">
             <div className="text-center">
-              <img src="/images/assets/hit_fx_spark.png" alt="Hit Effect" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
+              <img src={`${import.meta.env.BASE_URL}images/assets/hit_fx_spark.png`} alt="Hit Effect" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.6))', animation: 'hitPulse 1.5s ease-in-out infinite' }} />
               <p className="text-[10px] sm:text-xs font-mono tracking-wider text-[#00f0ff]">COLLISION FX</p>
             </div>
             <div className="text-center">
-              <img src="/images/assets/target_neon_glow.png" alt="Neon Glow" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
+              <img src={`${import.meta.env.BASE_URL}images/assets/target_neon_glow.png`} alt="Neon Glow" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(255,0,255,0.6))', animation: 'neonSpin 4s linear infinite' }} />
               <p className="text-[10px] sm:text-xs font-mono tracking-wider text-[#ff00ff]">NEON GLOW</p>
             </div>
@@ -417,7 +417,7 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <img src="/images/assets/logo-skull.jpeg" alt="Skull" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full"
+          <img src={`${import.meta.env.BASE_URL}images/assets/logo-skull.jpeg`} alt="Skull" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full"
             style={{ border: '2px solid rgba(0,240,255,0.3)', boxShadow: '0 0 30px rgba(0,240,255,0.2)', filter: 'saturate(1.3)' }} />
           
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
@@ -434,7 +434,7 @@ export default function Home() {
           <Link href="/game">
             <button className="group relative transition-all duration-300 hover:scale-110 active:scale-95">
               <img 
-                src="/images/assets/button_jouer_pulse_2.png" 
+                src={`${import.meta.env.BASE_URL}images/assets/button_jouer_pulse_2.png`} 
                 alt="JOUER" 
                 className="w-52 sm:w-60 md:w-72 mx-auto"
                 style={{
@@ -450,7 +450,7 @@ export default function Home() {
       <footer className="border-t py-8 px-4" style={{ borderColor: 'rgba(0,240,255,0.1)' }}>
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src="/images/assets/pulse_clicker_logo_512.png" alt="FF" className="w-7 h-7"
+            <img src={`${import.meta.env.BASE_URL}images/assets/pulse_clicker_logo_512.png`} alt="FF" className="w-7 h-7"
               style={{ filter: 'drop-shadow(0 0 5px rgba(0,240,255,0.4))' }} />
             <span className="text-gray-600 text-xs font-mono">Fail Frenzy Studios 2026</span>
           </div>

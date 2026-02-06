@@ -1,10 +1,19 @@
 /**
  * FAIL FRENZY PREMIUM - Asset Loader
  * Précharge toutes les images du jeu pour un rendu fluide
+ * Supporte le déploiement sur GitHub Pages avec base path dynamique
  */
 
 export interface AssetManifest {
   [key: string]: string;
+}
+
+// Resolve base path for GitHub Pages compatibility
+const BASE = import.meta.env.BASE_URL || '/';
+
+function assetPath(path: string): string {
+  // path starts with / — make it relative to BASE
+  return `${BASE}${path.startsWith('/') ? path.slice(1) : path}`;
 }
 
 export class AssetLoader {
@@ -13,34 +22,34 @@ export class AssetLoader {
   private total: number = 0;
   private onProgress?: (loaded: number, total: number) => void;
 
-  // Asset manifest - toutes les images du jeu
+  // Asset manifest - toutes les images du jeu (chemins relatifs)
   public static readonly MANIFEST: AssetManifest = {
     // Player
-    player: '/images/assets/pulse_clicker_logo_512.png',
+    player: assetPath('/images/assets/pulse_clicker_logo_512.png'),
     
     // Obstacles
-    obstacle_fire: '/images/assets/target_fire_glow.png',
-    obstacle_classic: '/images/assets/target_classic_glow.png',
+    obstacle_fire: assetPath('/images/assets/target_fire_glow.png'),
+    obstacle_classic: assetPath('/images/assets/target_classic_glow.png'),
     
     // Power-ups & Collectibles
-    powerup_neon: '/images/assets/target_neon_glow.png',
+    powerup_neon: assetPath('/images/assets/target_neon_glow.png'),
     
     // Effects
-    hit_spark: '/images/assets/hit_fx_spark.png',
+    hit_spark: assetPath('/images/assets/hit_fx_spark.png'),
     
     // UI
-    logo: '/images/assets/pulse_clicker_logo_512.png',
-    button_play: '/images/assets/button_jouer_pulse_2.png',
-    logo_skull: '/images/assets/logo-skull.jpeg',
-    skull_icon: '/images/assets/logo-skull-256.png',
-    skull_logo: '/images/assets/logo-skull-512.png',
-    skull_cropped: '/images/assets/logo-skull-cropped.png',
+    logo: assetPath('/images/assets/pulse_clicker_logo_512.png'),
+    button_play: assetPath('/images/assets/button_jouer_pulse_2.png'),
+    logo_skull: assetPath('/images/assets/logo-skull.jpeg'),
+    skull_icon: assetPath('/images/assets/logo-skull-256.png'),
+    skull_logo: assetPath('/images/assets/logo-skull-512.png'),
+    skull_cropped: assetPath('/images/assets/logo-skull-cropped.png'),
     
     // Backgrounds
-    bg_arcade: '/images/assets/hero-arcade-room.jpeg',
-    banner_gameover: '/images/assets/banner-game-over.jpeg',
-    promo_banner: '/images/assets/promo-banner.jpeg',
-    ui_pattern: '/images/assets/ui-pattern-arcade.jpeg',
+    bg_arcade: assetPath('/images/assets/hero-arcade-room.jpeg'),
+    banner_gameover: assetPath('/images/assets/banner-game-over.jpeg'),
+    promo_banner: assetPath('/images/assets/promo-banner.jpeg'),
+    ui_pattern: assetPath('/images/assets/ui-pattern-arcade.jpeg'),
   };
 
   constructor(onProgress?: (loaded: number, total: number) => void) {
