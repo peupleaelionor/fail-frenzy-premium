@@ -290,35 +290,11 @@ export class GameEngine {
   }
   
   private render(): void {
-    const { width, height, backgroundColor } = this.config;
-    
-    // Save context state
-    this.ctx.save();
-    
-    // Apply camera shake
-    this.ctx.translate(this.cameraShake.x, this.cameraShake.y);
-    
-    // Clear canvas
-    this.ctx.fillStyle = backgroundColor;
-    this.ctx.fillRect(0, 0, width, height);
-    
-    // Render entities
-    for (const entity of this.entities.values()) {
-      if (entity.alive) {
-        this.renderEntity(entity);
-      }
-    }
-    
-    // Render particles
-    this.renderParticles();
-    
-    // Render debug info
-    if (this.config.debug) {
-      this.renderDebug();
-    }
-    
-    // Restore context state
-    this.ctx.restore();
+    // NOTE: Rendering is fully handled by FailFrenzyGame.renderGame()
+    // which is registered as a system. The engine only clears the canvas.
+    // All entity rendering (diamond player, obstacles, VFX) is custom.
+    // DO NOT render entities here — it would draw ugly rectangles over
+    // the premium diamond/triangle/hexagon shapes.
   }
   
   private renderEntity(entity: Entity): void {
