@@ -1,16 +1,17 @@
 /**
- * FAIL FRENZY v2.0 - ULTIMATE Game Implementation
- * Fully integrated: Audio, Particles, Combo, Difficulty, PowerUps
+ * FAIL FRENZY PREMIUM v4.0 - Game Engine with Premium Asset Rendering
+ * Full sprite-based rendering with neon effects overlay
  */
 
 import { GameEngine, Entity, GameState } from '../engine/GameEngine';
 import { NeonRenderer } from '../engine/NeonRenderer';
 import { PhysicsSystem } from '../engine/PhysicsSystem';
-import { AudioSystem, AudioConfig } from '../systems/AudioSystem';
+import { AudioSystem } from '../systems/AudioSystem';
 import { ComboSystem } from '../systems/ComboSystem';
 import { DifficultySystem } from '../systems/DifficultySystem';
 import { ParticleSystem } from '../systems/ParticleSystem';
 import { PowerUpSystem, PowerUp } from '../systems/PowerUpSystem';
+import { AssetLoader } from './AssetLoader';
 
 export interface GameMode {
   name: string;
@@ -32,6 +33,9 @@ export class FailFrenzyGame {
   private particles: ParticleSystem;
   private powerups: PowerUpSystem;
   
+  // Asset loader
+  private assets: AssetLoader;
+  
   private player: Entity | null;
   private obstacles: Entity[];
   private collectibles: Entity[];
@@ -48,15 +52,20 @@ export class FailFrenzyGame {
   private difficultyLabel: string = 'EASY';
   private showDifficultyLabel: number = 0;
   
+  // Hit effects
+  private hitEffects: Array<{ x: number; y: number; alpha: number; scale: number; rotation: number }> = [];
+  
   // localStorage
   private highScores: Map<string, number> = new Map();
   
-  constructor(canvasId: string, mode: GameMode) {
+  constructor(canvasId: string, mode: GameMode, assets: AssetLoader) {
+    this.assets = assets;
+    
     this.engine = new GameEngine(canvasId, {
       width: 800,
       height: 600,
       fps: 60,
-      backgroundColor: '#0a0e27',
+      backgroundColor: '#050818',
       debug: false,
     });
     
@@ -132,8 +141,8 @@ export class FailFrenzyGame {
       type: 'player',
       x: 120,
       y: 300,
-      width: 28,
-      height: 28,
+      width: 48,
+      height: 48,
       velocity: { x: 0, y: 0 },
       acceleration: { x: 0, y: 0 },
       rotation: 0,
@@ -154,6 +163,7 @@ export class FailFrenzyGame {
   private setupInputHandlers(): void {
     let isPressed = false;
     let targetY = 300;
+    let targetX = 120;
     
     this.engine.on('input', (data: any) => {
       if (!this.player || this.engine.getState().isGameOver) return;
@@ -161,16 +171,20 @@ export class FailFrenzyGame {
       if (data.type === 'touchstart' || data.type === 'mousedown') {
         isPressed = true;
         targetY = data.y;
+        targetX = data.x;
       } else if (data.type === 'touchmove' || data.type === 'mousemove') {
         if (isPressed) {
           targetY = data.y;
+          targetX = data.x;
         }
       } else if (data.type === 'touchend' || data.type === 'mouseup') {
         isPressed = false;
       }
       
       if (isPressed && this.player) {
+        // Smooth follow for both axes on mobile
         this.player.y += (targetY - this.player.y) * 0.15;
+        this.player.x += (targetX - this.player.x) * 0.08;
       }
     });
     
@@ -224,7 +238,6 @@ export class FailFrenzyGame {
     this.combo.update(dt);
     this.particles.update(dt);
     this.powerups.update(dt);
-    // Audio is event-driven, no update needed
     
     // Check difficulty label change
     const newLabel = this.difficulty.getDifficultyLabel();
@@ -239,6 +252,15 @@ export class FailFrenzyGame {
     if (this.screenFlash) {
       this.screenFlash.alpha -= dt * 2;
       if (this.screenFlash.alpha <= 0) this.screenFlash = null;
+    }
+    
+    // Update hit effects
+    for (let i = this.hitEffects.length - 1; i >= 0; i--) {
+      const fx = this.hitEffects[i];
+      fx.alpha -= dt * 3;
+      fx.scale += dt * 4;
+      fx.rotation += dt * 5;
+      if (fx.alpha <= 0) this.hitEffects.splice(i, 1);
     }
     
     // Background pulse
@@ -331,7 +353,6 @@ export class FailFrenzyGame {
       collectible.x -= speed * dt;
       collectible.y += Math.sin(this.engine.getState().time * 3 + i) * 1.5;
       collectible.rotation += dt * 3;
-      collectible.scale = 1 + Math.sin(this.engine.getState().time * 5) * 0.15;
       
       if (collectible.x < -100) {
         this.engine.removeEntity(collectible.id);
@@ -341,17 +362,11 @@ export class FailFrenzyGame {
   }
   
   private spawnObstacle(): void {
-    const types = ['square', 'triangle', 'diamond'];
+    const types = ['fire', 'classic', 'fire'];
     const type = types[Math.floor(Math.random() * types.length)];
-    const size = 28 + Math.random() * 18;
+    const size = 36 + Math.random() * 20;
     const y = 40 + Math.random() * 520;
     const moveType = Math.random() < 0.25 ? 'sine' : 'linear';
-    
-    const colors = [
-      NeonRenderer.COLORS.MAGENTA,
-      NeonRenderer.COLORS.RED,
-      NeonRenderer.COLORS.ORANGE,
-    ];
     
     const obstacle: Entity = {
       id: `obs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -365,9 +380,9 @@ export class FailFrenzyGame {
       rotation: Math.random() * Math.PI,
       scale: 1,
       alive: true,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      color: type === 'fire' ? NeonRenderer.COLORS.ORANGE : NeonRenderer.COLORS.CYAN,
       components: new Map<string, any>([
-        ['collisionShape', type === 'square' ? 'aabb' : 'circle'],
+        ['collisionShape', 'circle'],
         ['obstacleType', type],
         ['moveType', moveType],
       ]),
@@ -393,8 +408,8 @@ export class FailFrenzyGame {
       type: 'collectible',
       x: 850,
       y,
-      width: 18,
-      height: 18,
+      width: 24,
+      height: 24,
       velocity: { x: 0, y: 0 },
       acceleration: { x: 0, y: 0 },
       rotation: 0,
@@ -415,8 +430,8 @@ export class FailFrenzyGame {
       type: 'powerup',
       x: 850,
       y,
-      width: 24,
-      height: 24,
+      width: 36,
+      height: 36,
       velocity: { x: 0, y: 0 },
       acceleration: { x: 0, y: 0 },
       rotation: 0,
@@ -443,10 +458,16 @@ export class FailFrenzyGame {
     for (const obstacle of this.obstacles) {
       if (this.simpleCollision(this.player, obstacle)) {
         if (!isInvincible && !isGhost) {
+          // Spawn hit effect at collision point
+          this.spawnHitEffect(
+            (this.player.x + obstacle.x) / 2,
+            (this.player.y + obstacle.y) / 2
+          );
           this.onFail();
           return;
         } else {
           // Destroy obstacle if invincible
+          this.spawnHitEffect(obstacle.x, obstacle.y);
           this.particles.explosion(obstacle.x, obstacle.y, obstacle.color);
           this.audio.playFail();
           obstacle.alive = false;
@@ -472,11 +493,21 @@ export class FailFrenzyGame {
     this.obstacles = this.obstacles.filter(o => o.alive);
   }
   
+  private spawnHitEffect(x: number, y: number): void {
+    this.hitEffects.push({
+      x,
+      y,
+      alpha: 1.0,
+      scale: 0.5,
+      rotation: Math.random() * Math.PI * 2,
+    });
+  }
+  
   private simpleCollision(a: Entity, b: Entity): boolean {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    return dist < (a.width / 2 + b.width / 2) * 0.85;
+    return dist < (a.width / 2 + b.width / 2) * 0.75;
   }
   
   private collectItem(collectible: Entity): void {
@@ -552,7 +583,7 @@ export class FailFrenzyGame {
     this.player.y = Math.max(pad, Math.min(h - pad, this.player.y));
   }
   
-  // ==================== RENDERING ====================
+  // ==================== PREMIUM RENDERING ====================
   
   private renderGame(): void {
     const ctx = this.engine['ctx'];
@@ -562,8 +593,9 @@ export class FailFrenzyGame {
     
     // Dynamic background
     this.renderer.update(1/60);
-    this.renderer.drawGrid(50, NeonRenderer.COLORS.CYAN);
-    this.renderer.drawScanlines();
+    
+    // Draw subtle animated grid
+    this.renderBackground(ctx, w, h, state.time);
     
     // Screen flash
     if (this.screenFlash) {
@@ -574,119 +606,17 @@ export class FailFrenzyGame {
       ctx.restore();
     }
     
-    // Render obstacles with glow
-    for (const obstacle of this.obstacles) {
-      const type = obstacle.components.get('obstacleType');
-      ctx.save();
-      ctx.translate(obstacle.x, obstacle.y);
-      ctx.rotate(obstacle.rotation);
-      
-      if (type === 'square') {
-        this.renderer.drawNeonRect(
-          -obstacle.width / 2, -obstacle.height / 2,
-          obstacle.width, obstacle.height,
-          obstacle.color
-        );
-      } else if (type === 'triangle') {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = obstacle.color;
-        ctx.fillStyle = obstacle.color;
-        ctx.beginPath();
-        ctx.moveTo(0, -obstacle.height / 2);
-        ctx.lineTo(obstacle.width / 2, obstacle.height / 2);
-        ctx.lineTo(-obstacle.width / 2, obstacle.height / 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      } else {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = obstacle.color;
-        ctx.fillStyle = obstacle.color;
-        ctx.beginPath();
-        ctx.moveTo(0, -obstacle.height / 2);
-        ctx.lineTo(obstacle.width / 2, 0);
-        ctx.lineTo(0, obstacle.height / 2);
-        ctx.lineTo(-obstacle.width / 2, 0);
-        ctx.closePath();
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-      ctx.restore();
-    }
+    // Render obstacles with sprite images
+    this.renderObstacles(ctx, state.time);
     
     // Render collectibles
-    for (const col of this.collectibles) {
-      ctx.save();
-      ctx.translate(col.x, col.y);
-      ctx.rotate(col.rotation);
-      ctx.scale(col.scale, col.scale);
-      
-      if (col.type === 'powerup') {
-        // Power-up: pulsing hexagon
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = NeonRenderer.COLORS.GREEN;
-        ctx.fillStyle = NeonRenderer.COLORS.GREEN;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        this.drawHexagon(ctx, 0, 0, col.width / 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        // Icon
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 10px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const pType = col.components.get('powerType') || '';
-        const icon = pType === 'shield' ? 'S' : pType === 'slowmo' ? 'T' : pType === 'multiplier' ? 'X' : '-';
-        ctx.fillText(icon, 0, 0);
-      } else {
-        // Collectible: glowing star
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = col.color;
-        ctx.fillStyle = col.color;
-        this.drawStar(ctx, 0, 0, 5, col.width / 2, col.width / 4);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-      ctx.restore();
-    }
+    this.renderCollectibles(ctx, state.time);
     
-    // Render player
-    if (this.player) {
-      const isInvincible = this.player.components.get('invincible');
-      
-      ctx.save();
-      ctx.translate(this.player.x, this.player.y);
-      ctx.scale(this.player.scale, this.player.scale);
-      
-      // Outer glow ring
-      const glowSize = isInvincible ? 25 : 18;
-      const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
-      gradient.addColorStop(0, this.player.color + 'cc');
-      gradient.addColorStop(0.5, this.player.color + '44');
-      gradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
-      
-      // Player body
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = this.player.color;
-      ctx.fillStyle = this.player.color;
-      ctx.beginPath();
-      ctx.arc(0, 0, this.player.width / 2, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Inner highlight
-      ctx.fillStyle = '#ffffff44';
-      ctx.beginPath();
-      ctx.arc(-3, -3, this.player.width / 4, 0, Math.PI * 2);
-      ctx.fill();
-      
-      ctx.shadowBlur = 0;
-      ctx.restore();
-    }
+    // Render player with sprite
+    this.renderPlayer(ctx, state.time);
+    
+    // Render hit effects (spark sprites)
+    this.renderHitEffects(ctx);
     
     // Render particles
     this.particles.render(ctx, this.renderer);
@@ -697,8 +627,295 @@ export class FailFrenzyGame {
     // Render combo floating texts
     this.combo.render(ctx);
     
+    // Render scanlines overlay
+    this.renderScanlines(ctx, w, h);
+    
     // Render UI
     this.renderUI(ctx, state, w, h);
+  }
+  
+  private renderBackground(ctx: CanvasRenderingContext2D, w: number, h: number, time: number): void {
+    // Dark gradient base
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+    bgGrad.addColorStop(0, '#050818');
+    bgGrad.addColorStop(0.5, '#0a0e27');
+    bgGrad.addColorStop(1, '#050818');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+    
+    // Animated grid
+    ctx.save();
+    ctx.globalAlpha = 0.06 + this.backgroundPulse;
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 0.5;
+    
+    const gridSize = 50;
+    const offsetX = (time * 20) % gridSize;
+    
+    for (let x = -offsetX; x < w; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Horizon glow
+    ctx.save();
+    const horizonGrad = ctx.createRadialGradient(w / 2, h, 0, w / 2, h, h * 0.8);
+    horizonGrad.addColorStop(0, 'rgba(0,240,255,0.04)');
+    horizonGrad.addColorStop(0.5, 'rgba(255,0,255,0.02)');
+    horizonGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = horizonGrad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  }
+  
+  private renderScanlines(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    for (let y = 0; y < h; y += 3) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, y, w, 1);
+    }
+    ctx.restore();
+  }
+  
+  private renderObstacles(ctx: CanvasRenderingContext2D, time: number): void {
+    for (const obstacle of this.obstacles) {
+      const type = obstacle.components.get('obstacleType');
+      const imgKey = type === 'fire' ? 'obstacle_fire' : 'obstacle_classic';
+      const img = this.assets.get(imgKey);
+      
+      ctx.save();
+      ctx.translate(obstacle.x, obstacle.y);
+      ctx.rotate(obstacle.rotation);
+      
+      const drawSize = obstacle.width * 1.8; // Sprites are bigger than hitbox for visual impact
+      const pulse = 1 + Math.sin(time * 3 + obstacle.x * 0.01) * 0.08;
+      const finalSize = drawSize * pulse;
+      
+      if (img) {
+        // Glow aura behind sprite
+        ctx.save();
+        ctx.globalAlpha = 0.3 + Math.sin(time * 4) * 0.1;
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = obstacle.color;
+        ctx.drawImage(img, -finalSize / 2, -finalSize / 2, finalSize, finalSize);
+        ctx.restore();
+        
+        // Main sprite
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        ctx.drawImage(img, -finalSize / 2, -finalSize / 2, finalSize, finalSize);
+        ctx.restore();
+      } else {
+        // Fallback: neon circle
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = obstacle.color;
+        ctx.fillStyle = obstacle.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, obstacle.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      
+      ctx.restore();
+    }
+  }
+  
+  private renderCollectibles(ctx: CanvasRenderingContext2D, time: number): void {
+    for (const col of this.collectibles) {
+      ctx.save();
+      ctx.translate(col.x, col.y);
+      ctx.rotate(col.rotation);
+      ctx.scale(col.scale, col.scale);
+      
+      if (col.type === 'powerup') {
+        // Power-up: use neon glow target sprite
+        const img = this.assets.get('powerup_neon');
+        const drawSize = col.width * 2.0;
+        const pulse = 1 + Math.sin(time * 5) * 0.15;
+        const finalSize = drawSize * pulse;
+        
+        if (img) {
+          // Rainbow glow
+          ctx.save();
+          ctx.globalAlpha = 0.4 + Math.sin(time * 3) * 0.15;
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = '#ff00ff';
+          ctx.drawImage(img, -finalSize / 2, -finalSize / 2, finalSize, finalSize);
+          ctx.restore();
+          
+          // Main sprite
+          ctx.drawImage(img, -finalSize / 2, -finalSize / 2, finalSize, finalSize);
+          
+          // Power type indicator
+          const pType = col.components.get('powerType') || '';
+          const icon = pType === 'shield' ? 'S' : pType === 'slowmo' ? 'T' : pType === 'multiplier' ? 'X' : '-';
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 12px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#fff';
+          ctx.fillText(icon, 0, 0);
+          ctx.shadowBlur = 0;
+        } else {
+          // Fallback hexagon
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = NeonRenderer.COLORS.GREEN;
+          ctx.fillStyle = NeonRenderer.COLORS.GREEN;
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i - Math.PI / 6;
+            const x = (col.width / 2) * Math.cos(angle);
+            const y = (col.width / 2) * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      } else {
+        // Collectible: small glowing star with neon effect
+        const pulse = 1 + Math.sin(time * 6 + col.x * 0.1) * 0.2;
+        const size = col.width * pulse;
+        
+        // Glow
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = NeonRenderer.COLORS.YELLOW;
+        ctx.fillStyle = NeonRenderer.COLORS.YELLOW;
+        
+        // Star shape
+        const spikes = 5;
+        const outerR = size / 2;
+        const innerR = size / 4;
+        let rot = -Math.PI / 2;
+        const step = Math.PI / spikes;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(rot) * outerR, Math.sin(rot) * outerR);
+        for (let i = 0; i < spikes; i++) {
+          ctx.lineTo(Math.cos(rot) * outerR, Math.sin(rot) * outerR);
+          rot += step;
+          ctx.lineTo(Math.cos(rot) * innerR, Math.sin(rot) * innerR);
+          rot += step;
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+      
+      ctx.restore();
+    }
+  }
+  
+  private renderPlayer(ctx: CanvasRenderingContext2D, time: number): void {
+    if (!this.player) return;
+    
+    const isInvincible = this.player.components.get('invincible');
+    const img = this.assets.get('player');
+    
+    ctx.save();
+    ctx.translate(this.player.x, this.player.y);
+    ctx.scale(this.player.scale, this.player.scale);
+    
+    const drawSize = this.player.width * 2.2;
+    
+    if (img) {
+      // Energy aura
+      ctx.save();
+      const auraSize = drawSize * (1.3 + Math.sin(time * 4) * 0.1);
+      const auraGrad = ctx.createRadialGradient(0, 0, drawSize * 0.2, 0, 0, auraSize / 2);
+      auraGrad.addColorStop(0, this.player.color + '40');
+      auraGrad.addColorStop(0.6, this.player.color + '15');
+      auraGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = auraGrad;
+      ctx.fillRect(-auraSize / 2, -auraSize / 2, auraSize, auraSize);
+      ctx.restore();
+      
+      // Shield ring when invincible
+      if (isInvincible) {
+        ctx.save();
+        ctx.globalAlpha = 0.6 + Math.sin(time * 8) * 0.3;
+        ctx.strokeStyle = NeonRenderer.COLORS.GREEN;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = NeonRenderer.COLORS.GREEN;
+        ctx.beginPath();
+        ctx.arc(0, 0, drawSize / 2 + 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      
+      // Glow layer
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = this.player.color;
+      ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      ctx.restore();
+      
+      // Main player sprite
+      ctx.save();
+      ctx.globalAlpha = 1;
+      ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      ctx.restore();
+    } else {
+      // Fallback: neon circle
+      const glowSize = isInvincible ? 30 : 22;
+      const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+      gradient.addColorStop(0, this.player.color + 'cc');
+      gradient.addColorStop(0.5, this.player.color + '44');
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
+      
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = this.player.color;
+      ctx.fillStyle = this.player.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.player.width / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    
+    ctx.restore();
+  }
+  
+  private renderHitEffects(ctx: CanvasRenderingContext2D): void {
+    const img = this.assets.get('hit_spark');
+    if (!img) return;
+    
+    for (const fx of this.hitEffects) {
+      ctx.save();
+      ctx.translate(fx.x, fx.y);
+      ctx.rotate(fx.rotation);
+      ctx.globalAlpha = fx.alpha;
+      
+      const size = 80 * fx.scale;
+      
+      // Glow behind
+      ctx.save();
+      ctx.shadowBlur = 40;
+      ctx.shadowColor = '#00f0ff';
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      ctx.restore();
+      
+      // Main effect
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      
+      ctx.restore();
+    }
   }
   
   private renderUI(ctx: CanvasRenderingContext2D, state: GameState, w: number, h: number): void {
@@ -716,7 +933,7 @@ export class FailFrenzyGame {
     ctx.shadowBlur = 0;
     ctx.restore();
     
-    // Fails (top left)
+    // Fails / Lives (top left)
     const modeType = this.getModeType();
     if (modeType === 'classic') {
       const maxFails = 3;
@@ -790,8 +1007,19 @@ export class FailFrenzyGame {
   private renderGameOver(ctx: CanvasRenderingContext2D, state: GameState, w: number, h: number): void {
     // Dark overlay
     ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
     ctx.fillRect(0, 0, w, h);
+    
+    // Banner image if available
+    const bannerImg = this.assets.get('banner_gameover');
+    if (bannerImg) {
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      const bannerH = h * 0.6;
+      const bannerW = bannerH * (bannerImg.width / bannerImg.height);
+      ctx.drawImage(bannerImg, (w - bannerW) / 2, (h - bannerH) / 2, bannerW, bannerH);
+      ctx.restore();
+    }
     
     // GAME OVER text
     ctx.shadowBlur = 30;
@@ -834,33 +1062,6 @@ export class FailFrenzyGame {
     }
     
     ctx.restore();
-  }
-  
-  // Helper shapes
-  private drawHexagon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 6;
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-  }
-  
-  private drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, spikes: number, outerR: number, innerR: number): void {
-    let rot = -Math.PI / 2;
-    const step = Math.PI / spikes;
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
-    for (let i = 0; i < spikes; i++) {
-      ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
-      rot += step;
-      ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
-      rot += step;
-    }
-    ctx.closePath();
   }
   
   private gameOver(success: boolean): void {
@@ -931,6 +1132,7 @@ export class FailFrenzyGame {
     this.obstacles = [];
     this.collectibles = [];
     this.activePowerUps = [];
+    this.hitEffects = [];
     this.spawnTimer = 0;
     this.powerUpSpawnTimer = 0;
     this.combo.reset();

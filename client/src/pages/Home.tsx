@@ -1,14 +1,15 @@
 /**
- * FAIL FRENZY - Premium Landing Page
- * Immersive game-first experience, mobile-first responsive
+ * FAIL FRENZY PREMIUM - Landing Page
+ * Immersive game-first experience with premium assets, mobile-first responsive
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'wouter';
 
 export default function Home() {
   const [glitchActive, setGlitchActive] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [scrollY, setScrollY] = useState(0);
   const [highScore] = useState(() => {
     try {
       const data = localStorage.getItem('failfrenzy_highscores');
@@ -28,12 +29,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white overflow-hidden" onMouseMove={handleMouseMove}>
+    <div className="min-h-screen bg-[#050818] text-white overflow-hidden" onMouseMove={handleMouseMove}>
       
       {/* === HERO SECTION === */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4">
@@ -42,30 +49,32 @@ export default function Home() {
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              linear-gradient(90deg, rgba(0,240,255,0.06) 1px, transparent 1px),
-              linear-gradient(0deg, rgba(0,240,255,0.06) 1px, transparent 1px)
+              linear-gradient(90deg, rgba(0,240,255,0.05) 1px, transparent 1px),
+              linear-gradient(0deg, rgba(0,240,255,0.05) 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px',
             transform: `perspective(500px) rotateX(${20 + mousePos.y * 5}deg)`,
             transformOrigin: 'center 120%',
           }} />
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e27] via-transparent to-[#0a0e27]/80" />
-          {/* City background */}
-          <div className="absolute bottom-0 left-0 right-0 h-[40vh] opacity-30"
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050818] via-transparent to-[#050818]/80" />
+          
+          {/* Arcade room background */}
+          <div className="absolute bottom-0 left-0 right-0 h-[50vh] opacity-20"
             style={{
-              backgroundImage: 'url(/images/game-bg-neon-city.png)',
+              backgroundImage: 'url(/images/assets/hero-arcade-room.jpeg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center bottom',
-              maskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)',
+              maskImage: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)',
+              transform: `translateY(${scrollY * 0.3}px)`,
             }}
           />
         </div>
 
         {/* Floating particles */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(25)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full"
@@ -87,21 +96,42 @@ export default function Home() {
         {/* Main content */}
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           
-          {/* Logo */}
+          {/* Premium Logo */}
           <div className="mb-6 sm:mb-8">
             <img 
-              src="/images/logo-main.png" 
-              alt="Fail Frenzy" 
-              className="w-48 sm:w-64 md:w-80 mx-auto drop-shadow-[0_0_40px_rgba(0,240,255,0.4)]"
+              src="/images/assets/pulse_clicker_logo_512.png" 
+              alt="Fail Frenzy Premium" 
+              className="w-28 sm:w-36 md:w-44 mx-auto"
               style={{
-                filter: glitchActive ? 'hue-rotate(90deg) brightness(1.5)' : 'none',
+                filter: glitchActive 
+                  ? 'hue-rotate(90deg) brightness(1.5) drop-shadow(0 0 40px rgba(255,0,255,0.6))' 
+                  : 'drop-shadow(0 0 40px rgba(0,240,255,0.5))',
                 transition: 'filter 0.1s',
+                animation: 'logoFloat 4s ease-in-out infinite',
               }}
             />
           </div>
 
+          {/* Title */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter leading-none">
+            <span style={{ 
+              color: '#00f0ff', 
+              textShadow: '0 0 30px rgba(0,240,255,0.5), 0 0 60px rgba(0,240,255,0.2)',
+              display: 'inline-block',
+              transform: glitchActive ? 'translateX(3px)' : 'none',
+              transition: 'transform 0.05s',
+            }}>FAIL</span>
+            <span className="mx-1 sm:mx-2" style={{ 
+              color: '#ff00ff', 
+              textShadow: '0 0 30px rgba(255,0,255,0.5), 0 0 60px rgba(255,0,255,0.2)',
+              display: 'inline-block',
+              transform: glitchActive ? 'translateX(-3px)' : 'none',
+              transition: 'transform 0.05s',
+            }}>FRENZY</span>
+          </h1>
+
           {/* Tagline */}
-          <p className="text-lg sm:text-xl md:text-2xl font-bold mb-2 tracking-wide"
+          <p className="text-base sm:text-lg md:text-xl font-bold mb-2 tracking-wide"
             style={{
               background: 'linear-gradient(90deg, #00f0ff, #ff00ff, #ffff00)',
               backgroundSize: '200% auto',
@@ -111,42 +141,42 @@ export default function Home() {
             }}>
             WHERE FAILURE IS THE MAIN REWARD
           </p>
-          <p className="text-gray-500 text-xs sm:text-sm font-mono mb-8 sm:mb-10">
-            Dodge. Fail. Repeat. Compete.
+          <p className="text-gray-500 text-xs sm:text-sm font-mono mb-8 sm:mb-10 tracking-wider">
+            DODGE. FAIL. REPEAT. COMPETE.
           </p>
 
-          {/* CTA Buttons */}
+          {/* CTA Button - Using JOUER asset */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10 sm:mb-14">
             <Link href="/game">
-              <button className="group relative w-64 sm:w-auto px-10 py-4 sm:py-5 text-lg sm:text-xl font-black rounded-xl overflow-hidden transition-all duration-300 hover:scale-105"
-                style={{
-                  background: 'linear-gradient(135deg, #00f0ff 0%, #0080ff 50%, #ff00ff 100%)',
-                  boxShadow: '0 0 30px rgba(0,240,255,0.4), 0 0 60px rgba(255,0,255,0.2)',
-                }}>
-                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  PLAY NOW
-                </span>
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <button className="group relative transition-all duration-300 hover:scale-110 active:scale-95">
+                <img 
+                  src="/images/assets/button_jouer_pulse_2.png" 
+                  alt="JOUER" 
+                  className="w-48 sm:w-56 md:w-64"
+                  style={{
+                    filter: 'drop-shadow(0 0 25px rgba(0,240,255,0.4)) drop-shadow(0 0 50px rgba(255,0,255,0.2))',
+                    animation: 'buttonPulse 2s ease-in-out infinite',
+                  }}
+                />
               </button>
             </Link>
           </div>
 
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-lg mx-auto">
-            <div className="text-center">
+            <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(0,240,255,0.05)', border: '1px solid rgba(0,240,255,0.15)' }}>
               <div className="text-2xl sm:text-3xl font-black text-[#00f0ff]" style={{ textShadow: '0 0 20px rgba(0,240,255,0.6)' }}>
                 60
               </div>
               <div className="text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider mt-1">FPS</div>
             </div>
-            <div className="text-center">
+            <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,0,255,0.05)', border: '1px solid rgba(255,0,255,0.15)' }}>
               <div className="text-2xl sm:text-3xl font-black text-[#ff00ff]" style={{ textShadow: '0 0 20px rgba(255,0,255,0.6)' }}>
                 4
               </div>
               <div className="text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider mt-1">MODES</div>
             </div>
-            <div className="text-center">
+            <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,0,0.05)', border: '1px solid rgba(255,255,0,0.15)' }}>
               <div className="text-2xl sm:text-3xl font-black text-[#ffff00]" style={{ textShadow: '0 0 20px rgba(255,255,0,0.6)' }}>
                 {highScore > 0 ? highScore : '---'}
               </div>
@@ -163,7 +193,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* === GAME PREVIEW SECTION === */}
+      {/* === GAME ASSETS SHOWCASE === */}
       <section className="relative py-16 sm:py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-black mb-4 tracking-tight">
@@ -174,6 +204,38 @@ export default function Home() {
           <p className="text-center text-gray-500 text-sm sm:text-base mb-12 max-w-xl mx-auto">
             A brutally fast arcade experience powered by a custom neon rendering engine with real-time particle effects and procedural audio.
           </p>
+
+          {/* Premium asset showcase */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-16 max-w-3xl mx-auto">
+            <div className="text-center group">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
+                <img src="/images/assets/pulse_clicker_logo_512.png" alt="Player" className="w-full h-full"
+                  style={{ filter: 'drop-shadow(0 0 15px rgba(0,240,255,0.5))' }} />
+              </div>
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#00f0ff' }}>PLAYER</p>
+            </div>
+            <div className="text-center group">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
+                <img src="/images/assets/target_fire_glow.png" alt="Fire Target" className="w-full h-full"
+                  style={{ filter: 'drop-shadow(0 0 15px rgba(255,102,0,0.5))' }} />
+              </div>
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#ff6600' }}>FIRE TARGET</p>
+            </div>
+            <div className="text-center group">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
+                <img src="/images/assets/target_classic_glow.png" alt="Classic Target" className="w-full h-full"
+                  style={{ filter: 'drop-shadow(0 0 15px rgba(0,100,255,0.5))' }} />
+              </div>
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#0066ff' }}>CLASSIC TARGET</p>
+            </div>
+            <div className="text-center group">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 transition-transform group-hover:scale-110">
+                <img src="/images/assets/target_neon_glow.png" alt="Neon Power-up" className="w-full h-full"
+                  style={{ filter: 'drop-shadow(0 0 15px rgba(255,0,255,0.5))' }} />
+              </div>
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider" style={{ color: '#ff00ff' }}>POWER-UP</p>
+            </div>
+          </div>
 
           {/* Feature cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -272,9 +334,9 @@ export default function Home() {
             ].map((mode) => (
               <Link key={mode.name} href="/game">
                 <div
-                  className="group relative p-6 sm:p-8 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+                  className="group relative p-6 sm:p-8 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   style={{
-                    background: `linear-gradient(135deg, ${mode.color}08 0%, #0a0e27 100%)`,
+                    background: `linear-gradient(135deg, ${mode.color}08 0%, #050818 100%)`,
                     borderColor: `${mode.color}30`,
                   }}
                   onMouseEnter={(e) => {
@@ -312,61 +374,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* === ASSETS SHOWCASE === */}
+      {/* === HIT EFFECT SHOWCASE === */}
       <section className="relative py-16 sm:py-24 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-black mb-12 tracking-tight">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 tracking-tight">
             <span style={{ color: '#ffff00', textShadow: '0 0 30px rgba(255,255,0,0.5)' }}>PREMIUM</span>
-            <span className="text-white ml-3">ASSETS</span>
+            <span className="text-white ml-3">EFFECTS</span>
           </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Player character */}
-            <div className="rounded-xl border border-[#00f0ff30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #00f0ff08 0%, #0a0e27 100%)' }}>
-              <img src="/images/player-character.png" alt="Player" className="w-32 sm:w-40 mx-auto mb-4 drop-shadow-[0_0_30px_rgba(0,240,255,0.5)]" />
-              <h3 className="font-bold text-[#00f0ff] tracking-wider mb-1">PLAYER CHARACTER</h3>
-              <p className="text-gray-500 text-xs">Neon diamond with energy shield and particle trail</p>
+          
+          {/* Hit effect showcase */}
+          <div className="flex items-center justify-center gap-8 sm:gap-12 mb-8">
+            <div className="text-center">
+              <img src="/images/assets/hit_fx_spark.png" alt="Hit Effect" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.6))', animation: 'hitPulse 1.5s ease-in-out infinite' }} />
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider text-[#00f0ff]">COLLISION FX</p>
             </div>
-
-            {/* Obstacles */}
-            <div className="rounded-xl border border-[#ff00ff30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ff00ff08 0%, #0a0e27 100%)' }}>
-              <img src="/images/obstacles-sheet.png" alt="Obstacles" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,0,255,0.3)]" />
-              <h3 className="font-bold text-[#ff00ff] tracking-wider mb-1">OBSTACLE TYPES</h3>
-              <p className="text-gray-500 text-xs">Barriers, saw blades, electric fences and laser grids</p>
-            </div>
-
-            {/* Power-ups */}
-            <div className="rounded-xl border border-[#ffff0030] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ffff0008 0%, #0a0e27 100%)' }}>
-              <img src="/images/powerups-sheet.png" alt="Power-ups" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,255,0,0.3)]" />
-              <h3 className="font-bold text-[#ffff00] tracking-wider mb-1">POWER-UPS</h3>
-              <p className="text-gray-500 text-xs">Shield, SlowMo, Speed Boost, Magnet and Bomb</p>
-            </div>
-
-            {/* Game Over */}
-            <div className="rounded-xl border border-[#ff2d7b30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ff2d7b08 0%, #0a0e27 100%)' }}>
-              <img src="/images/game-over-screen.png" alt="Game Over" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,45,123,0.3)]" />
-              <h3 className="font-bold text-[#ff2d7b] tracking-wider mb-1">GAME OVER</h3>
-              <p className="text-gray-500 text-xs">Glitch shatter effect with score breakdown</p>
+            <div className="text-center">
+              <img src="/images/assets/target_neon_glow.png" alt="Neon Glow" className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(255,0,255,0.6))', animation: 'neonSpin 4s linear infinite' }} />
+              <p className="text-[10px] sm:text-xs font-mono tracking-wider text-[#ff00ff]">NEON GLOW</p>
             </div>
           </div>
+          
+          <p className="text-gray-500 text-xs sm:text-sm max-w-md mx-auto">
+            Every collision, every dodge, every power-up triggers hand-crafted visual effects designed for maximum impact.
+          </p>
         </div>
       </section>
 
       {/* === FINAL CTA === */}
       <section className="relative py-20 sm:py-32 px-4 text-center">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 opacity-20"
+          <div className="absolute inset-0 opacity-15"
             style={{
-              backgroundImage: 'url(/images/hero-glitch.png)',
+              backgroundImage: 'url(/images/assets/ui-pattern-arcade.jpeg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              filter: 'blur(30px)',
+              filter: 'blur(20px) saturate(1.5)',
             }}
           />
-          <div className="absolute inset-0 bg-[#0a0e27]/80" />
+          <div className="absolute inset-0 bg-[#050818]/85" />
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
+          <img src="/images/assets/logo-skull.jpeg" alt="Skull" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full"
+            style={{ border: '2px solid rgba(0,240,255,0.3)', boxShadow: '0 0 30px rgba(0,240,255,0.2)', filter: 'saturate(1.3)' }} />
+          
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
             <span className="text-white">READY TO</span><br />
             <span style={{
@@ -379,23 +432,26 @@ export default function Home() {
             Join the loop. Master the chaos. Celebrate every failure.
           </p>
           <Link href="/game">
-            <button className="px-12 py-5 text-xl font-black rounded-xl transition-all duration-300 hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%)',
-                boxShadow: '0 0 40px rgba(0,240,255,0.3), 0 0 80px rgba(255,0,255,0.2)',
-                color: '#000',
-              }}>
-              ENTER THE FRENZY
+            <button className="group relative transition-all duration-300 hover:scale-110 active:scale-95">
+              <img 
+                src="/images/assets/button_jouer_pulse_2.png" 
+                alt="JOUER" 
+                className="w-52 sm:w-60 md:w-72 mx-auto"
+                style={{
+                  filter: 'drop-shadow(0 0 30px rgba(0,240,255,0.4)) drop-shadow(0 0 60px rgba(255,0,255,0.2))',
+                }}
+              />
             </button>
           </Link>
         </div>
       </section>
 
       {/* === FOOTER === */}
-      <footer className="border-t border-[#00f0ff15] py-8 px-4">
+      <footer className="border-t py-8 px-4" style={{ borderColor: 'rgba(0,240,255,0.1)' }}>
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-icon.png" alt="FF" className="w-8 h-8" />
+            <img src="/images/assets/pulse_clicker_logo_512.png" alt="FF" className="w-7 h-7"
+              style={{ filter: 'drop-shadow(0 0 5px rgba(0,240,255,0.4))' }} />
             <span className="text-gray-600 text-xs font-mono">Fail Frenzy Studios 2026</span>
           </div>
           <div className="flex gap-6 text-gray-600 text-xs font-mono">
@@ -415,6 +471,22 @@ export default function Home() {
         @keyframes float {
           0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
           50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+        }
+        @keyframes logoFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes buttonPulse {
+          0%, 100% { filter: drop-shadow(0 0 25px rgba(0,240,255,0.4)) drop-shadow(0 0 50px rgba(255,0,255,0.2)); }
+          50% { filter: drop-shadow(0 0 35px rgba(0,240,255,0.6)) drop-shadow(0 0 70px rgba(255,0,255,0.3)); }
+        }
+        @keyframes hitPulse {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.15); opacity: 1; }
+        }
+        @keyframes neonSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

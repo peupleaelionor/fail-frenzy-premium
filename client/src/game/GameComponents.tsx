@@ -1,20 +1,74 @@
 /**
- * FAIL FRENZY v3.0 - Premium Game Components
- * Mobile-first, responsive, immersive UI
+ * FAIL FRENZY PREMIUM v4.0 - Game Components
+ * Mobile-first, responsive, immersive UI with premium asset integration
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FailFrenzyGame, GameMode } from './FailFrenzyGame';
 import { GameState } from '../engine/GameEngine';
+import { AssetLoader, preloadAssets } from './AssetLoader';
 import { Link } from 'wouter';
+
+// ==================== LOADING SCREEN ====================
+
+const LoadingScreen: React.FC<{ progress: number }> = ({ progress }) => {
+  const pct = Math.round(progress * 100);
+  
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center z-50 rounded-xl"
+      style={{ background: '#050818' }}>
+      {/* Logo */}
+      <div className="mb-8">
+        <img
+          src="/images/assets/pulse_clicker_logo_512.png"
+          alt="Loading"
+          className="w-24 h-24 sm:w-32 sm:h-32 mx-auto"
+          style={{
+            filter: 'drop-shadow(0 0 30px rgba(0,240,255,0.6))',
+            animation: 'spin 3s linear infinite',
+          }}
+        />
+      </div>
+      
+      {/* Progress bar */}
+      <div className="w-48 sm:w-64 h-2 rounded-full overflow-hidden mb-3"
+        style={{ background: 'rgba(0,240,255,0.1)', border: '1px solid rgba(0,240,255,0.2)' }}>
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${pct}%`,
+            background: 'linear-gradient(90deg, #00f0ff, #ff00ff)',
+            boxShadow: '0 0 15px rgba(0,240,255,0.5)',
+          }}
+        />
+      </div>
+      
+      {/* Text */}
+      <p className="text-xs sm:text-sm font-mono tracking-widest"
+        style={{ color: '#00f0ff', textShadow: '0 0 10px rgba(0,240,255,0.5)' }}>
+        LOADING ASSETS {pct}%
+      </p>
+      
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// ==================== GAME CANVAS ====================
 
 interface GameCanvasProps {
   mode: GameMode;
+  assets: AssetLoader;
   onScoreUpdate?: (score: number) => void;
   onGameOver?: (score: number, fails: number, time: number) => void;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onGameOver }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, assets, onScoreUpdate, onGameOver }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<FailFrenzyGame | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,7 +80,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const game = new FailFrenzyGame('game-canvas', mode);
+    const game = new FailFrenzyGame('game-canvas', mode, assets);
     gameRef.current = game;
     game.start();
 
@@ -57,23 +111,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
       }
     }, 100);
 
-    // Handle resize for responsive canvas
-    const handleResize = () => {
-      if (containerRef.current && canvasRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        canvasRef.current.width = rect.width * dpr;
-        canvasRef.current.height = rect.height * dpr;
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
     return () => {
       clearInterval(stateInterval);
-      window.removeEventListener('resize', handleResize);
       game.destroy();
     };
-  }, [mode]);
+  }, [mode, assets]);
 
   const handlePause = useCallback(() => {
     if (!gameRef.current) return;
@@ -103,7 +145,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
         style={{
           aspectRatio: '16/10',
           border: '2px solid rgba(0,240,255,0.3)',
-          boxShadow: '0 0 40px rgba(0,240,255,0.15), inset 0 0 40px rgba(0,0,0,0.5)',
+          boxShadow: '0 0 40px rgba(0,240,255,0.15), 0 0 80px rgba(255,0,255,0.08), inset 0 0 40px rgba(0,0,0,0.5)',
           background: '#050818',
           imageRendering: 'auto',
           touchAction: 'none',
@@ -115,7 +157,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between z-10">
           {/* Score */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="px-3 py-1.5 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,240,255,0.3)' }}>
+            <div className="px-3 py-1.5 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,240,255,0.3)' }}>
               <span className="text-[10px] sm:text-xs text-gray-500 font-mono block leading-none">SCORE</span>
               <span className="text-lg sm:text-xl font-black text-white leading-none" style={{ textShadow: '0 0 15px rgba(0,240,255,0.6)' }}>
                 {gameState.score}
@@ -134,15 +176,15 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
           <div className="flex gap-1.5 sm:gap-2">
             <button
               onClick={handlePause}
-              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all"
-              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,240,255,0.3)' }}
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all hover:scale-110"
+              style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,240,255,0.3)' }}
             >
               <span className="text-[#00f0ff] text-sm">{isPaused ? '▶' : '⏸'}</span>
             </button>
             <button
               onClick={handleRestart}
-              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all"
-              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,0,255,0.3)' }}
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all hover:scale-110"
+              style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,0,255,0.3)' }}
             >
               <span className="text-[#ff00ff] text-sm">↻</span>
             </button>
@@ -154,13 +196,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
       {gameState && !showGameOver && (
         <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between z-10">
           <div className="flex gap-2 sm:gap-3">
-            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,45,123,0.3)' }}>
+            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,45,123,0.3)' }}>
               <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">FAILS</span>
               <span className="text-sm sm:text-base font-bold text-white ml-1.5" style={{ textShadow: '0 0 10px rgba(255,45,123,0.5)' }}>
                 {gameState.fails}
               </span>
             </div>
-            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)' }}>
+            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,255,136,0.3)' }}>
               <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">TIME</span>
               <span className="text-sm sm:text-base font-bold text-white ml-1.5" style={{ textShadow: '0 0 10px rgba(0,255,136,0.5)' }}>
                 {gameState.time.toFixed(1)}s
@@ -174,6 +216,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
       {isPaused && !showGameOver && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.92)', backdropFilter: 'blur(8px)' }}>
           <div className="text-center px-6">
+            <img src="/images/assets/pulse_clicker_logo_512.png" alt="Paused" className="w-16 h-16 mx-auto mb-4 opacity-60" style={{ filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.4))' }} />
             <h2 className="text-4xl sm:text-5xl font-black mb-2" style={{ color: '#00f0ff', textShadow: '0 0 40px rgba(0,240,255,0.6)' }}>
               PAUSED
             </h2>
@@ -202,7 +245,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
       {showGameOver && finalStats && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.95)', backdropFilter: 'blur(12px)' }}>
           <div className="text-center px-6 w-full max-w-sm">
-            <h2 className="text-4xl sm:text-5xl font-black mb-1" style={{ color: '#ff2d7b', textShadow: '0 0 40px rgba(255,45,123,0.6)' }}>
+            {/* Skull logo */}
+            <img src="/images/assets/logo-skull.jpeg" alt="Game Over" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full" 
+              style={{ border: '2px solid rgba(255,45,123,0.4)', boxShadow: '0 0 30px rgba(255,45,123,0.3)', filter: 'saturate(1.3)' }} />
+            
+            <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: '#ff2d7b', textShadow: '0 0 40px rgba(255,45,123,0.6)' }}>
               GAME OVER
             </h2>
             <p className="text-gray-500 text-xs font-mono mb-6">Another glorious failure.</p>
@@ -227,21 +274,21 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
             <div className="flex flex-col gap-3 items-center">
               <button
                 onClick={handleRestart}
-                className="w-full max-w-xs py-3.5 font-black text-base rounded-xl transition-all hover:scale-105"
+                className="w-full max-w-xs py-3.5 font-black text-base rounded-xl transition-all hover:scale-105 active:scale-95"
                 style={{ background: 'linear-gradient(135deg, #00f0ff, #ff00ff)', color: '#000', boxShadow: '0 0 30px rgba(0,240,255,0.3)' }}
               >
                 PLAY AGAIN
               </button>
               <button
                 onClick={() => {
-                  const text = `I scored ${finalStats.score} on Fail Frenzy with ${finalStats.fails} fails in ${finalStats.time.toFixed(1)}s! Can you beat me?`;
+                  const text = `I scored ${finalStats.score} on Fail Frenzy Premium with ${finalStats.fails} fails in ${finalStats.time.toFixed(1)}s! Can you beat me? 🎮`;
                   if (navigator.share) {
-                    navigator.share({ title: 'Fail Frenzy', text });
+                    navigator.share({ title: 'Fail Frenzy Premium', text });
                   } else {
                     navigator.clipboard.writeText(text);
                   }
                 }}
-                className="w-full max-w-xs py-3 font-bold text-sm rounded-xl transition-all hover:scale-105"
+                className="w-full max-w-xs py-3 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95"
                 style={{ background: 'rgba(255,255,0,0.1)', border: '1px solid rgba(255,255,0,0.3)', color: '#ffff00' }}
               >
                 SHARE SCORE
@@ -254,42 +301,47 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
   );
 };
 
-// Game mode selector component
+// ==================== GAME MODE SELECTOR ====================
+
 interface GameModeSelectorProps {
   onModeSelect: (mode: GameMode) => void;
 }
 
 export const GameModeSelector: React.FC<GameModeSelectorProps> = ({ onModeSelect }) => {
-  const modes: { mode: GameMode; color: string; tag: string; icon: string }[] = [
+  const modes: { mode: GameMode; color: string; tag: string; icon: string; emoji: string }[] = [
     {
       mode: { name: 'Classic', description: '3 lives, progressive difficulty', difficulty: 1 },
       color: '#00f0ff',
       tag: 'POPULAR',
       icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+      emoji: '⚡',
     },
     {
       mode: { name: 'Time Trial', description: 'Survive 60 seconds', duration: 60, difficulty: 1.5 },
       color: '#00ff88',
       tag: '60 SEC',
       icon: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
+      emoji: '⏱',
     },
     {
       mode: { name: 'Infinite', description: 'No game over, infinite run', difficulty: 1 },
       color: '#ff00ff',
       tag: 'ENDLESS',
       icon: 'M18.6 6.62c-1.44 0-2.8.56-3.77 1.53L12 10.66 9.17 8.15C8.2 7.18 6.84 6.62 5.4 6.62 2.42 6.62 0 9.04 0 12s2.42 5.38 5.4 5.38c1.44 0 2.8-.56 3.77-1.53L12 13.34l2.83 2.51c.97.97 2.33 1.53 3.77 1.53C21.58 17.38 24 14.96 24 12s-2.42-5.38-5.4-5.38z',
+      emoji: '∞',
     },
     {
       mode: { name: 'Seeds', description: 'Compete on the same run', seed: Math.floor(Date.now() / 1000), difficulty: 1.2 },
       color: '#ffff00',
       tag: 'COMPETE',
       icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+      emoji: '🌱',
     },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
-      {modes.map(({ mode, color, tag, icon }) => (
+      {modes.map(({ mode, color, tag, icon, emoji }) => (
         <button
           key={mode.name}
           onClick={() => onModeSelect(mode)}
@@ -309,8 +361,8 @@ export const GameModeSelector: React.FC<GameModeSelectorProps> = ({ onModeSelect
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${color}12`, border: `1px solid ${color}25` }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill={color}><path d={icon} /></svg>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: `${color}12`, border: `1px solid ${color}25` }}>
+                {emoji}
               </div>
               <h3 className="text-lg sm:text-xl font-black tracking-wide" style={{ color }}>{mode.name}</h3>
             </div>
@@ -330,9 +382,13 @@ export const GameModeSelector: React.FC<GameModeSelectorProps> = ({ onModeSelect
   );
 };
 
-// Main game page component
+// ==================== MAIN GAME PAGE ====================
+
 export const GamePage: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+  const [assets, setAssets] = useState<AssetLoader | null>(null);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [highScore, setHighScore] = useState(() => {
     try {
       const data = localStorage.getItem('failfrenzy_highscores');
@@ -344,9 +400,31 @@ export const GamePage: React.FC = () => {
     return 0;
   });
 
-  const handleModeSelect = (mode: GameMode) => {
+  // Preload assets when a mode is selected
+  const handleModeSelect = useCallback(async (mode: GameMode) => {
+    if (assets) {
+      // Assets already loaded
+      setSelectedMode(mode);
+      return;
+    }
+    
+    setIsLoading(true);
     setSelectedMode(mode);
-  };
+    
+    try {
+      const loadedAssets = await preloadAssets((loaded, total) => {
+        setLoadProgress(loaded / total);
+      });
+      setAssets(loadedAssets);
+    } catch (err) {
+      console.error('Failed to load assets:', err);
+      // Still allow game to start with fallback rendering
+      const fallbackAssets = new AssetLoader();
+      setAssets(fallbackAssets);
+    }
+    
+    setIsLoading(false);
+  }, [assets]);
 
   const handleGameOver = (score: number, fails: number, time: number) => {
     if (score > highScore) {
@@ -372,7 +450,9 @@ export const GamePage: React.FC = () => {
       <header className="relative z-10 border-b py-3 sm:py-4 px-4" style={{ borderColor: 'rgba(0,240,255,0.1)', background: 'rgba(5,8,24,0.8)', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-[900px] mx-auto flex items-center justify-between">
           <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer group">
+            <div className="flex items-center gap-2.5 cursor-pointer group">
+              <img src="/images/assets/pulse_clicker_logo_512.png" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9 transition-transform group-hover:rotate-12"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.5))' }} />
               <span className="text-xl sm:text-2xl font-black tracking-tight">
                 <span style={{ color: '#00f0ff', textShadow: '0 0 15px rgba(0,240,255,0.5)' }}>FAIL</span>
                 <span style={{ color: '#ff00ff', textShadow: '0 0 15px rgba(255,0,255,0.5)' }} className="ml-0.5">FRENZY</span>
@@ -404,6 +484,9 @@ export const GamePage: React.FC = () => {
         {!selectedMode ? (
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8 sm:mb-10">
+              {/* Logo showcase */}
+              <img src="/images/assets/pulse_clicker_logo_512.png" alt="Fail Frenzy" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4"
+                style={{ filter: 'drop-shadow(0 0 25px rgba(0,240,255,0.5))' }} />
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 tracking-tight">
                 <span style={{
                   background: 'linear-gradient(90deg, #00f0ff, #ff00ff)',
@@ -414,18 +497,38 @@ export const GamePage: React.FC = () => {
               <p className="text-gray-600 text-xs sm:text-sm font-mono">Choose your challenge. Master the chaos.</p>
             </div>
             <GameModeSelector onModeSelect={handleModeSelect} />
+            
+            {/* Asset preview strip */}
+            <div className="mt-10 flex items-center justify-center gap-4 sm:gap-6 opacity-40">
+              <img src="/images/assets/target_fire_glow.png" alt="" className="w-10 h-10 sm:w-12 sm:h-12" style={{ filter: 'drop-shadow(0 0 8px rgba(255,102,0,0.5))' }} />
+              <img src="/images/assets/target_classic_glow.png" alt="" className="w-10 h-10 sm:w-12 sm:h-12" style={{ filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.5))' }} />
+              <img src="/images/assets/target_neon_glow.png" alt="" className="w-10 h-10 sm:w-12 sm:h-12" style={{ filter: 'drop-shadow(0 0 8px rgba(255,0,255,0.5))' }} />
+              <img src="/images/assets/hit_fx_spark.png" alt="" className="w-10 h-10 sm:w-12 sm:h-12" style={{ filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.5))' }} />
+            </div>
           </div>
         ) : (
-          <div className="max-w-[900px] mx-auto">
+          <div className="max-w-[900px] mx-auto relative">
             <div className="mb-3 sm:mb-4 text-center">
               <h2 className="text-lg sm:text-xl font-black tracking-wider" style={{ color: '#00f0ff', textShadow: '0 0 20px rgba(0,240,255,0.4)' }}>
                 {selectedMode.name?.toUpperCase()}
               </h2>
             </div>
-            <GameCanvas
-              mode={selectedMode}
-              onGameOver={handleGameOver}
-            />
+            
+            {/* Loading overlay */}
+            {(isLoading || !assets) && (
+              <div className="relative" style={{ aspectRatio: '16/10' }}>
+                <LoadingScreen progress={loadProgress} />
+              </div>
+            )}
+            
+            {/* Game canvas */}
+            {assets && !isLoading && (
+              <GameCanvas
+                mode={selectedMode}
+                assets={assets}
+                onGameOver={handleGameOver}
+              />
+            )}
           </div>
         )}
       </main>
