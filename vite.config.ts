@@ -33,6 +33,7 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: false,
-    host: true
+    host: true,
+    allowedHosts: ['.manus.computer', '.manus.m.manus.computer']
   }
 });
