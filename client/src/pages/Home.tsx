@@ -1,481 +1,422 @@
 /**
- * FAIL FRENZY - Premium Home Page
- * Investor-ready landing with game showcase
+ * FAIL FRENZY - Premium Landing Page
+ * Immersive game-first experience, mobile-first responsive
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
-import { ChevronDown, Zap, Target, Users, Gamepad2, TrendingUp, Share2, Sparkles, Play, Award, Globe } from 'lucide-react';
 
 export default function Home() {
-  const [expandedSection, setExpandedSection] = useState<string | null>('overview');
+  const [glitchActive, setGlitchActive] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [highScore] = useState(() => {
+    try {
+      const data = localStorage.getItem('failfrenzy_highscores');
+      if (data) {
+        const parsed = JSON.parse(data);
+        return Math.max(0, ...Object.values(parsed).map(Number));
+      }
+    } catch {}
+    return 0;
+  });
 
-  const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlitchActive(true);
+      setTimeout(() => setGlitchActive(false), 150);
+    }, 3000 + Math.random() * 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27]">
-        {/* Animated background grid */}
-        <div className="absolute inset-0 opacity-20">
+    <div className="min-h-screen bg-[#0a0e27] text-white overflow-hidden" onMouseMove={handleMouseMove}>
+      
+      {/* === HERO SECTION === */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-4">
+        
+        {/* Animated neon grid background */}
+        <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(0deg, rgba(0,255,255,0.1) 1px, transparent 1px)
+              linear-gradient(90deg, rgba(0,240,255,0.06) 1px, transparent 1px),
+              linear-gradient(0deg, rgba(0,240,255,0.06) 1px, transparent 1px)
             `,
-            backgroundSize: '50px 50px',
+            backgroundSize: '60px 60px',
+            transform: `perspective(500px) rotateX(${20 + mousePos.y * 5}deg)`,
+            transformOrigin: 'center 120%',
           }} />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e27] via-transparent to-[#0a0e27]/80" />
+          {/* City background */}
+          <div className="absolute bottom-0 left-0 right-0 h-[40vh] opacity-30"
+            style={{
+              backgroundImage: 'url(/images/game-bg-neon-city.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center bottom',
+              maskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)',
+            }}
+          />
         </div>
-        
-        {/* Glitch scanlines */}
+
+        {/* Floating particles */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-transparent animate-pulse" style={{ backgroundSize: '100% 4px' }} />
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: `${2 + Math.random() * 4}px`,
+                height: `${2 + Math.random() * 4}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                background: ['#00f0ff', '#ff00ff', '#ffff00', '#00ff88'][i % 4],
+                boxShadow: `0 0 ${6 + Math.random() * 10}px currentColor`,
+                animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: 0.6,
+              }}
+            />
+          ))}
         </div>
-        
-        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-7xl md:text-9xl font-black mb-4 glitch-text" style={{ 
-              textShadow: '4px 4px 0 #ff00ff, 8px 8px 0 #00ffff, 12px 12px 0 #ffff00',
-              letterSpacing: '0.05em'
-            }}>
-              FAIL FRENZY
-            </h1>
-            <p className="text-3xl md:text-5xl font-bold mb-2" style={{ 
-              background: 'linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff)',
+
+        {/* Main content */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          
+          {/* Logo */}
+          <div className="mb-6 sm:mb-8">
+            <img 
+              src="/images/logo-main.png" 
+              alt="Fail Frenzy" 
+              className="w-48 sm:w-64 md:w-80 mx-auto drop-shadow-[0_0_40px_rgba(0,240,255,0.4)]"
+              style={{
+                filter: glitchActive ? 'hue-rotate(90deg) brightness(1.5)' : 'none',
+                transition: 'filter 0.1s',
+              }}
+            />
+          </div>
+
+          {/* Tagline */}
+          <p className="text-lg sm:text-xl md:text-2xl font-bold mb-2 tracking-wide"
+            style={{
+              background: 'linear-gradient(90deg, #00f0ff, #ff00ff, #ffff00)',
               backgroundSize: '200% auto',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              animation: 'gradient 3s linear infinite'
+              animation: 'gradient 4s linear infinite',
             }}>
-              PREMIUM ENGINE EDITION
-            </p>
-          </div>
-          
-          <p className="text-xl md:text-2xl text-gray-300 mb-12 font-mono leading-relaxed">
-            Edge-First Game Engine • <span className="text-cyan-400">&lt;2s Load</span> • <span className="text-magenta-400">Infinite Scale</span>
-            <br />
-            <span className="text-sm text-gray-500">Cloudflare Workers • React 19 • Canvas • D1/KV/R2</span>
+            WHERE FAILURE IS THE MAIN REWARD
           </p>
-          
-          <div className="flex gap-6 justify-center flex-wrap mb-8">
+          <p className="text-gray-500 text-xs sm:text-sm font-mono mb-8 sm:mb-10">
+            Dodge. Fail. Repeat. Compete.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10 sm:mb-14">
             <Link href="/game">
-              <button className="group relative px-10 py-5 text-xl font-bold bg-gradient-to-r from-cyan-500 to-magenta-500 rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,255,255,0.6)]">
-                <span className="relative z-10 flex items-center gap-3">
-                  <Play className="w-6 h-6" /> PLAY NOW
+              <button className="group relative w-64 sm:w-auto px-10 py-4 sm:py-5 text-lg sm:text-xl font-black rounded-xl overflow-hidden transition-all duration-300 hover:scale-105"
+                style={{
+                  background: 'linear-gradient(135deg, #00f0ff 0%, #0080ff 50%, #ff00ff 100%)',
+                  boxShadow: '0 0 30px rgba(0,240,255,0.4), 0 0 60px rgba(255,0,255,0.2)',
+                }}>
+                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  PLAY NOW
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-magenta-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             </Link>
-            
-            <button className="px-10 py-5 text-xl font-bold border-2 border-cyan-400 rounded-lg hover:bg-cyan-500/20 transition-all hover:shadow-[0_0_30px_rgba(0,255,255,0.4)]">
-              📊 METRICS
-            </button>
-            
-            <button className="px-10 py-5 text-xl font-bold border-2 border-magenta-400 rounded-lg hover:bg-magenta-500/20 transition-all hover:shadow-[0_0_30px_rgba(255,0,255,0.4)]">
-              📖 DOCS
-            </button>
           </div>
-          
-          {/* Stats banner */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
+
+          {/* Quick stats */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-lg mx-auto">
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-black text-[#00f0ff]" style={{ textShadow: '0 0 20px rgba(0,240,255,0.6)' }}>
+                60
+              </div>
+              <div className="text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider mt-1">FPS</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-black text-[#ff00ff]" style={{ textShadow: '0 0 20px rgba(255,0,255,0.6)' }}>
+                4
+              </div>
+              <div className="text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider mt-1">MODES</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-black text-[#ffff00]" style={{ textShadow: '0 0 20px rgba(255,255,0,0.6)' }}>
+                {highScore > 0 ? highScore : '---'}
+              </div>
+              <div className="text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider mt-1">BEST</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" strokeWidth="2">
+            <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+          </svg>
+        </div>
+      </section>
+
+      {/* === GAME PREVIEW SECTION === */}
+      <section className="relative py-16 sm:py-24 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-black mb-4 tracking-tight">
+            <span style={{ color: '#00f0ff', textShadow: '0 0 30px rgba(0,240,255,0.5)' }}>NEON</span>
+            <span className="text-white mx-2">GLITCH</span>
+            <span style={{ color: '#ff00ff', textShadow: '0 0 30px rgba(255,0,255,0.5)' }}>ENGINE</span>
+          </h2>
+          <p className="text-center text-gray-500 text-sm sm:text-base mb-12 max-w-xl mx-auto">
+            A brutally fast arcade experience powered by a custom neon rendering engine with real-time particle effects and procedural audio.
+          </p>
+
+          {/* Feature cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { label: 'Load Time', value: '<2s', icon: Zap, color: 'cyan' },
-              { label: 'API Latency', value: '~50ms', icon: TrendingUp, color: 'green' },
-              { label: 'Global Scale', value: '∞', icon: Globe, color: 'magenta' },
-              { label: 'Cost/100K', value: '€0', icon: Award, color: 'yellow' },
-            ].map((stat) => (
-              <div key={stat.label} className={`bg-${stat.color}-500/10 border border-${stat.color}-400 rounded-lg p-4 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all`}>
-                <div className="flex items-center justify-center mb-2">
-                  <stat.icon className={`w-8 h-8 text-${stat.color}-400`} />
+              {
+                title: 'NEON RENDERER',
+                desc: 'Custom canvas engine with dynamic glow, chromatic aberration, scanlines and shockwave effects at 60 FPS.',
+                color: '#00f0ff',
+                icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+              },
+              {
+                title: 'PROCEDURAL AUDIO',
+                desc: 'Real-time synthwave soundtrack generated via Web Audio API. No loading, no buffering, pure vibes.',
+                color: '#ff00ff',
+                icon: 'M9 18V5l12-2v13M9 18c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zM21 16c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z',
+              },
+              {
+                title: 'COMBO SYSTEM',
+                desc: '7 combo tiers from Good to Godlike. Near-miss detection rewards precision with massive score multipliers.',
+                color: '#ffff00',
+                icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+              },
+              {
+                title: 'POWER-UPS',
+                desc: 'Shield, SlowMo, Magnet, Multiplier, Bomb and more. Each with unique visual effects and strategic value.',
+                color: '#00ff88',
+                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+              },
+              {
+                title: 'ADAPTIVE DIFFICULTY',
+                desc: 'AI-driven difficulty that keeps you in the flow state. From Easy to Nightmare, the game adapts to YOU.',
+                color: '#ff6600',
+                icon: 'M2 20h20L12 4 2 20zm11-3h-2v-2h2v2zm0-4h-2V9h2v4z',
+              },
+              {
+                title: 'PARTICLE SYSTEM',
+                desc: 'Up to 1000 simultaneous particles. Explosions, trails, sparkles and confetti for every action.',
+                color: '#ff2d7b',
+                icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707',
+              },
+            ].map((feature) => (
+              <div
+                key={feature.title}
+                className="group relative p-5 sm:p-6 rounded-xl border transition-all duration-300 hover:scale-[1.02]"
+                style={{
+                  background: `linear-gradient(135deg, ${feature.color}08 0%, ${feature.color}03 100%)`,
+                  borderColor: `${feature.color}30`,
+                  boxShadow: `inset 0 0 30px ${feature.color}05`,
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = `${feature.color}80`;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${feature.color}20, inset 0 0 30px ${feature.color}10`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = `${feature.color}30`;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `inset 0 0 30px ${feature.color}05`;
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ background: `${feature.color}15`, border: `1px solid ${feature.color}30` }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={feature.icon} />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base tracking-wider" style={{ color: feature.color }}>
+                    {feature.title}
+                  </h3>
                 </div>
-                <div className={`text-2xl font-bold text-${stat.color}-400`}>{stat.value}</div>
-                <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
+                <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
+                  {feature.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Game Overview */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#00ffff' }}>
-            ⚡ Game Overview
+      {/* === GAME MODES SECTION === */}
+      <section className="relative py-16 sm:py-24 px-4" style={{ background: 'linear-gradient(180deg, transparent 0%, #0d1230 50%, transparent 100%)' }}>
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-black mb-4 tracking-tight">
+            <span className="text-white">CHOOSE YOUR</span>
+            <span className="ml-3" style={{ color: '#ff00ff', textShadow: '0 0 30px rgba(255,0,255,0.5)' }}>CHALLENGE</span>
           </h2>
-          
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <div className="glitch-card">
-              <h3 className="text-2xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
-                <Zap className="w-6 h-6" /> Core Concept
-              </h3>
-              <p className="text-white font-mono text-sm leading-relaxed">
-                Players navigate extremely short loops (2.5–5 seconds) where failure is the main reward. The loop resets instantly upon fail. Players are incentivized to fail via a "Fail Streak" system, cosmetic progression, and humorous animations.
-              </p>
-            </div>
+          <p className="text-center text-gray-500 text-sm sm:text-base mb-12 max-w-xl mx-auto">
+            Four distinct game modes, each designed to test a different aspect of your reflexes and strategy.
+          </p>
 
-            <div className="glitch-card">
-              <h3 className="text-2xl font-bold text-cyan-300 mb-4 flex items-center gap-2">
-                <Target className="w-6 h-6" /> Target Audience
-              </h3>
-              <p className="text-white font-mono text-sm leading-relaxed">
-                10–50 years old, global, casual mobile gamers. Designed to be immediately understandable and fun for children, teens, and adults. Perfect for short play sessions during daily commutes or breaks.
-              </p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-2xl font-bold text-magenta-300 mb-4 flex items-center gap-2">
-                <Gamepad2 className="w-6 h-6" /> Platforms
-              </h3>
-              <p className="text-white font-mono text-sm leading-relaxed">
-                iOS + Android. Optimized for vertical orientation with touch-based controls. Lightweight and memory-efficient for a wide range of devices.
-              </p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-2xl font-bold text-lime-300 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6" /> Goal
-              </h3>
-              <p className="text-white font-mono text-sm leading-relaxed">
-                Maximize retention, virality, and monetization. Create an experience so engaging that players return daily and encourage friends to download.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Game Loop Visualization */}
-      <section className="py-20 px-4 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#ff00ff' }}>
-            🔄 The Core Loop
-          </h2>
-          
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
-            <div>
-              <img src="/images/game-loop-visual.png" alt="Game Loop" className="w-full max-w-md mx-auto pulse-glow" />
-            </div>
-            
-            <div className="space-y-4">
-              <div className="glitch-card">
-                <h4 className="text-cyan-400 font-bold text-lg mb-2">1. Start Screen</h4>
-                <p className="text-white text-sm">One-touch start launches immediately into action</p>
-              </div>
-              <div className="glitch-card">
-                <h4 className="text-magenta-400 font-bold text-lg mb-2">2. Single Challenge</h4>
-                <p className="text-white text-sm">Player faces one obstacle: tap, swipe, or hold</p>
-              </div>
-              <div className="glitch-card">
-                <h4 className="text-yellow-400 font-bold text-lg mb-2">3. Instant Feedback</h4>
-                <p className="text-white text-sm">Success or fail in a fraction of second with animation, sound, haptics</p>
-              </div>
-              <div className="glitch-card">
-                <h4 className="text-lime-400 font-bold text-lg mb-2">4. Restart in &lt;0.3s</h4>
-                <p className="text-white text-sm">Quasi-instant restart keeps players in flow state</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Game Systems */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#00ffff' }}>
-            ⚙️ Game Systems
-          </h2>
-
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {[
-              { id: 'controller', title: '🎮 Player Controller', desc: 'Handles input detection (tap/swipe/hold), calculates success/failure, sends events to Fail Streak manager' },
-              { id: 'streak', title: '📊 Fail Streak Manager', desc: 'Tracks consecutive fails, unlocks cosmetics/environments, triggers animations, updates leaderboards' },
-              { id: 'obstacles', title: '🎯 Obstacle Generator', desc: 'Procedural generation with varied speed, type, position, and random animations for infinite replayability' },
-              { id: 'difficulty', title: '📈 Dynamic Difficulty Manager', desc: 'Adjusts speed, spacing, reaction windows based on player skill to maintain "edge of frustration"' },
-              { id: 'score', title: '🏆 Score & Leaderboard Manager', desc: 'Tracks loops, streaks, percentiles, generates data for social sharing, real-time or daily reset' },
-              { id: 'cosmetics', title: '✨ Cosmetic & Progression Manager', desc: 'Unlocks skins, environments, sound packs - purely cosmetic, no gameplay advantages' },
-              { id: 'audio', title: '🔊 Audio & Haptics Manager', desc: 'Funny sounds on fail, rewarding sounds on rare success, strong haptic feedback' },
-              { id: 'save', title: '💾 Save/Load Manager', desc: 'Auto-saves player progress, cosmetics unlocked, fail streak history' },
-            ].map((system) => (
-              <div key={system.id} className="glitch-card cursor-pointer hover:border-cyan-400 transition-colors" onClick={() => toggleSection(system.id)}>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-cyan-300">{system.title}</h3>
-                  <ChevronDown className={`w-5 h-5 text-cyan-400 transition-transform ${expandedSection === system.id ? 'rotate-180' : ''}`} />
+              { name: 'CLASSIC', desc: '3 lives. Progressive difficulty. How far can you go before the neon consumes you?', color: '#00f0ff', tag: 'MOST POPULAR' },
+              { name: 'TIME TRIAL', desc: '60 seconds on the clock. Every millisecond counts. Pure speed, pure pressure.', color: '#00ff88', tag: '60 SECONDS' },
+              { name: 'INFINITE', desc: 'No game over. No limits. Just you, the obstacles, and an ever-growing score.', color: '#ff00ff', tag: 'ENDLESS' },
+              { name: 'SEEDS', desc: 'Reproducible challenges. Share your seed code and compete on the exact same run.', color: '#ffff00', tag: 'COMPETITIVE' },
+            ].map((mode) => (
+              <Link key={mode.name} href="/game">
+                <div
+                  className="group relative p-6 sm:p-8 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: `linear-gradient(135deg, ${mode.color}08 0%, #0a0e27 100%)`,
+                    borderColor: `${mode.color}30`,
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = `${mode.color}80`;
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 0 40px ${mode.color}15`;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = `${mode.color}30`;
+                    (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xl sm:text-2xl font-black tracking-wider" style={{ color: mode.color }}>
+                      {mode.name}
+                    </h3>
+                    <span className="text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded-full tracking-wider"
+                      style={{ background: `${mode.color}15`, color: mode.color, border: `1px solid ${mode.color}30` }}>
+                      {mode.tag}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-xs sm:text-sm leading-relaxed mb-4">
+                    {mode.desc}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: mode.color }}>
+                    <span>PLAY NOW</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
                 </div>
-                {expandedSection === system.id && (
-                  <p className="text-white text-sm mt-3 font-mono">{system.desc}</p>
-                )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Game Modes */}
-      <section className="py-20 px-4 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#ff00ff' }}>
-            🎮 Game Modes
+      {/* === ASSETS SHOWCASE === */}
+      <section className="relative py-16 sm:py-24 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-black mb-12 tracking-tight">
+            <span style={{ color: '#ffff00', textShadow: '0 0 30px rgba(255,255,0,0.5)' }}>PREMIUM</span>
+            <span className="text-white ml-3">ASSETS</span>
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-cyan-300 mb-3">Classic Loop</h3>
-              <p className="text-white text-sm mb-3">Infinite procedural loops with increasing difficulty. Survive as long as possible and accumulate the longest Fail Streak.</p>
-              <div className="text-xs text-cyan-400 font-mono">Perfect for quick sessions</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Player character */}
+            <div className="rounded-xl border border-[#00f0ff30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #00f0ff08 0%, #0a0e27 100%)' }}>
+              <img src="/images/player-character.png" alt="Player" className="w-32 sm:w-40 mx-auto mb-4 drop-shadow-[0_0_30px_rgba(0,240,255,0.5)]" />
+              <h3 className="font-bold text-[#00f0ff] tracking-wider mb-1">PLAYER CHARACTER</h3>
+              <p className="text-gray-500 text-xs">Neon diamond with energy shield and particle trail</p>
             </div>
 
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-magenta-300 mb-3">Daily Fail</h3>
-              <p className="text-white text-sm mb-3">All players face the same challenge for 24 hours. Leaderboard resets daily, giving everyone a fresh chance.</p>
-              <div className="text-xs text-magenta-400 font-mono">Competitive daily reset</div>
+            {/* Obstacles */}
+            <div className="rounded-xl border border-[#ff00ff30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ff00ff08 0%, #0a0e27 100%)' }}>
+              <img src="/images/obstacles-sheet.png" alt="Obstacles" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,0,255,0.3)]" />
+              <h3 className="font-bold text-[#ff00ff] tracking-wider mb-1">OBSTACLE TYPES</h3>
+              <p className="text-gray-500 text-xs">Barriers, saw blades, electric fences and laser grids</p>
             </div>
 
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-yellow-300 mb-3">Chaos Mode</h3>
-              <p className="text-white text-sm mb-3">Weekly event with random modifiers: speed changes, inverted gravity, reduced visibility, reversed controls, and more.</p>
-              <div className="text-xs text-yellow-400 font-mono">Unpredictable weekly event</div>
+            {/* Power-ups */}
+            <div className="rounded-xl border border-[#ffff0030] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ffff0008 0%, #0a0e27 100%)' }}>
+              <img src="/images/powerups-sheet.png" alt="Power-ups" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,255,0,0.3)]" />
+              <h3 className="font-bold text-[#ffff00] tracking-wider mb-1">POWER-UPS</h3>
+              <p className="text-gray-500 text-xs">Shield, SlowMo, Speed Boost, Magnet and Bomb</p>
             </div>
 
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-lime-300 mb-3">Streak Challenge</h3>
-              <p className="text-white text-sm mb-3">Pure focus on accumulating consecutive fails. Compete for the longest Fail Streak on the global leaderboard.</p>
-              <div className="text-xs text-lime-400 font-mono">Fail mastery competition</div>
+            {/* Game Over */}
+            <div className="rounded-xl border border-[#ff2d7b30] p-6 text-center" style={{ background: 'linear-gradient(135deg, #ff2d7b08 0%, #0a0e27 100%)' }}>
+              <img src="/images/game-over-screen.png" alt="Game Over" className="w-full max-w-xs mx-auto mb-4 drop-shadow-[0_0_20px_rgba(255,45,123,0.3)]" />
+              <h3 className="font-bold text-[#ff2d7b] tracking-wider mb-1">GAME OVER</h3>
+              <p className="text-gray-500 text-xs">Glitch shatter effect with score breakdown</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Monetization */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#00ffff' }}>
-            💰 Monetization Strategy
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-cyan-300 mb-4">In-App Purchases</h3>
-              <ul className="text-white text-sm space-y-2 font-mono">
-                <li>✓ Remove Ads (one-time)</li>
-                <li>✓ Cosmetic Packs (skins, effects)</li>
-                <li>✓ Environments/Themes</li>
-                <li>✓ Rare Sound Packs</li>
-              </ul>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-magenta-300 mb-4">Rewarded Ads</h3>
-              <ul className="text-white text-sm space-y-2 font-mono">
-                <li>✓ Second Chance After Fail</li>
-                <li>✓ Double Cosmetic Reward</li>
-                <li>✓ Instant Replay Option</li>
-                <li>✓ Optional, Player-Initiated</li>
-              </ul>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-xl font-bold text-yellow-300 mb-4">Shop Features</h3>
-              <ul className="text-white text-sm space-y-2 font-mono">
-                <li>✓ One-Tap Purchase</li>
-                <li>✓ Seasonal Packs</li>
-                <li>✓ Trending Items</li>
-                <li>✓ Social Proof Display</li>
-              </ul>
-            </div>
-          </div>
+      {/* === FINAL CTA === */}
+      <section className="relative py-20 sm:py-32 px-4 text-center">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: 'url(/images/hero-glitch.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(30px)',
+            }}
+          />
+          <div className="absolute inset-0 bg-[#0a0e27]/80" />
         </div>
-      </section>
 
-      {/* Virality & Social */}
-      <section className="py-20 px-4 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#ff00ff' }}>
-            📱 Virality & Social Integration
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
+            <span className="text-white">READY TO</span><br />
+            <span style={{
+              background: 'linear-gradient(90deg, #00f0ff, #ff00ff, #ffff00)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>FAIL FORWARD?</span>
           </h2>
-
-          <div className="glitch-card mb-8">
-            <img src="/images/fail-streak-graphic.png" alt="Fail Streak" className="w-full max-w-md mx-auto mb-8" />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">
-                <Share2 className="w-5 h-5" /> Automatic Video Generation
-              </h3>
-              <p className="text-white text-sm">Automatically generates 3–5 second clips of notable fails, streaks, and rare successes. Pre-fills hashtags for TikTok, Instagram Reels, and YouTube Shorts.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-magenta-300 mb-3 flex items-center gap-2">
-                <Users className="w-5 h-5" /> Social Sharing
-              </h3>
-              <p className="text-white text-sm">One-tap sharing to major platforms. Includes Fail Streak counter and funny captions. Encourages challenges between friends.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-yellow-300 mb-3 flex items-center gap-2">
-                <Sparkles className="w-5 h-5" /> Rare Fail Highlights
-              </h3>
-              <p className="text-white text-sm">System detects particularly unique or comedic fails. These "Rare Fails" are highlighted and encouraged for sharing, creating viral moments.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-lime-300 mb-3 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" /> Trending Content
-              </h3>
-              <p className="text-white text-sm">Shop displays trending cosmetic items that appear frequently in shared videos, creating social proof and driving purchases.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Visual Style */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#00ffff' }}>
-            🎨 Graphic Style
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-cyan-300 mb-3">Aesthetic</h3>
-              <ul className="text-white text-sm space-y-2 font-mono">
-                <li>• Minimalist, colorful, high contrast</li>
-                <li>• Cartoonish, humorous fail animations</li>
-                <li>• Procedural environments (urban, nature, futuristic)</li>
-                <li>• Visually striking cosmetic skins</li>
-                <li>• Ultra-minimalist UI, no clutter</li>
-                <li>• Dynamic lighting & particle effects</li>
-              </ul>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-magenta-300 mb-3">Design Principles</h3>
-              <ul className="text-white text-sm space-y-2 font-mono">
-                <li>• Exaggerated, satisfying fail animations</li>
-                <li>• Instantly recognizable cosmetics</li>
-                <li>• High-contrast colors for clarity</li>
-                <li>• Responsive to player actions</li>
-                <li>• Culturally neutral art style</li>
-                <li>• Optimized for mobile screens</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Technical Specs */}
-      <section className="py-20 px-4 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#ff00ff' }}>
-            ⚙️ Technical Specifications
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-cyan-300 mb-4">Engine & Architecture</h3>
-              <div className="space-y-3 text-white text-sm font-mono">
-                <div><span className="text-yellow-300">Engine:</span> Unity</div>
-                <div><span className="text-yellow-300">Architecture:</span> ECS (Entity Component System)</div>
-                <div><span className="text-yellow-300">Platforms:</span> iOS + Android</div>
-                <div><span className="text-yellow-300">Input:</span> Touch-based</div>
-                <div><span className="text-yellow-300">Frame Rate:</span> 60+ FPS</div>
-                <div><span className="text-yellow-300">Orientation:</span> Vertical (Portrait)</div>
-              </div>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-magenta-300 mb-4">Performance & Features</h3>
-              <div className="space-y-3 text-white text-sm font-mono">
-                <div><span className="text-yellow-300">Memory:</span> Lightweight & optimized</div>
-                <div><span className="text-yellow-300">Leaderboards:</span> Cloud-based save</div>
-                <div><span className="text-yellow-300">Analytics:</span> Loops, fails, shares tracked</div>
-                <div><span className="text-yellow-300">Progression:</span> Cosmetic-only</div>
-                <div><span className="text-yellow-300">Accessibility:</span> One-handed play</div>
-                <div><span className="text-yellow-300">Monetization:</span> Ethical & non-intrusive</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategic Notes */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl text-center mb-12" style={{ color: '#00ffff' }}>
-            🎯 Strategic Principles
-          </h2>
-
-          <div className="space-y-4">
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-cyan-300 mb-2">Focus on Speed & Virality</h3>
-              <p className="text-white text-sm">Resist adding complex mechanics. Every feature must enhance speed, fun, and shareability.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-magenta-300 mb-2">Failure is Rewarding</h3>
-              <p className="text-white text-sm">Every aspect—animations, sounds, haptics—must make failure positive, humorous, and addictive.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-yellow-300 mb-2">Lightweight Meta-Game</h3>
-              <p className="text-white text-sm">Progression is purely cosmetic. Ensures balance, accessibility, and skill-based gameplay.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-lime-300 mb-2">One-Handed, Intuitive UI</h3>
-              <p className="text-white text-sm">Playable with one hand in portrait mode. No tutorials needed. Instant comprehension.</p>
-            </div>
-
-            <div className="glitch-card">
-              <h3 className="text-lg font-bold text-cyan-300 mb-2">Global Appeal</h3>
-              <p className="text-white text-sm">No language barriers. Culturally neutral art. Universal design for 10M+ downloads.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-slate-950 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="glitch-text text-4xl md:text-5xl mb-8" style={{ color: '#ffff00' }}>
-            Ready to Experience the Frenzied Loop?
-          </h2>
-          <p className="text-white text-lg mb-8 font-mono">
-            Download Fail Frenzy: The Loop and join millions of players celebrating failure.
+          <p className="text-gray-400 text-sm sm:text-base mb-10 max-w-md mx-auto">
+            Join the loop. Master the chaos. Celebrate every failure.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="glitch-button px-8 py-4 text-lg hover:scale-105 transition-transform">
-              📥 Download iOS
+          <Link href="/game">
+            <button className="px-12 py-5 text-xl font-black rounded-xl transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%)',
+                boxShadow: '0 0 40px rgba(0,240,255,0.3), 0 0 80px rgba(255,0,255,0.2)',
+                color: '#000',
+              }}>
+              ENTER THE FRENZY
             </button>
-            <button className="glitch-button px-8 py-4 text-lg hover:scale-105 transition-transform">
-              📥 Download Android
-            </button>
-            <button className="glitch-button px-8 py-4 text-lg border-magenta-500 hover:scale-105 transition-transform" style={{ borderColor: '#ff00ff' }}>
-              📧 Contact Us
-            </button>
-          </div>
+          </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black py-8 px-4 text-center border-t-4 border-cyan-400">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-cyan-400 font-mono text-sm mb-2">
-            © 2026 Fail Frenzy Studios. All rights reserved.
-          </p>
-          <p className="text-gray-500 font-mono text-xs">
-            Where Failure is the Main Reward | Made with ❤️ and Glitches
-          </p>
-          <div className="mt-4 flex justify-center gap-4 text-cyan-400">
-            <a href="#" className="hover:text-magenta-400 transition-colors">Twitter</a>
-            <a href="#" className="hover:text-magenta-400 transition-colors">TikTok</a>
-            <a href="#" className="hover:text-magenta-400 transition-colors">Instagram</a>
-            <a href="#" className="hover:text-magenta-400 transition-colors">Discord</a>
+      {/* === FOOTER === */}
+      <footer className="border-t border-[#00f0ff15] py-8 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img src="/images/logo-icon.png" alt="FF" className="w-8 h-8" />
+            <span className="text-gray-600 text-xs font-mono">Fail Frenzy Studios 2026</span>
+          </div>
+          <div className="flex gap-6 text-gray-600 text-xs font-mono">
+            <a href="#" className="hover:text-[#00f0ff] transition-colors">Twitter</a>
+            <a href="#" className="hover:text-[#ff00ff] transition-colors">TikTok</a>
+            <a href="#" className="hover:text-[#ffff00] transition-colors">Discord</a>
           </div>
         </div>
       </footer>
+
+      {/* Global animations */}
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+          50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,11 +1,12 @@
 /**
- * FAIL FRENZY v2.0 - React Game Components
- * Premium UI with full integration
+ * FAIL FRENZY v3.0 - Premium Game Components
+ * Mobile-first, responsive, immersive UI
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FailFrenzyGame, GameMode } from './FailFrenzyGame';
 import { GameState } from '../engine/GameEngine';
+import { Link } from 'wouter';
 
 interface GameCanvasProps {
   mode: GameMode;
@@ -16,18 +17,19 @@ interface GameCanvasProps {
 export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onGameOver }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<FailFrenzyGame | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [finalStats, setFinalStats] = useState<{ score: number; fails: number; time: number } | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    // Create game instance - audio is handled internally
     const game = new FailFrenzyGame('game-canvas', mode);
     gameRef.current = game;
     game.start();
 
-    // Update state periodically
     const stateInterval = setInterval(() => {
       const state = game.getState();
       setGameState(state);
@@ -36,13 +38,39 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
         onScoreUpdate(state.score);
       }
 
-      if (state.isGameOver && onGameOver) {
-        onGameOver(state.score, state.fails, state.time);
+      if (state.isGameOver && !showGameOver) {
+        setShowGameOver(true);
+        setFinalStats({ score: state.score, fails: state.fails, time: state.time });
+        if (onGameOver) {
+          onGameOver(state.score, state.fails, state.time);
+        }
+        // Save high score
+        try {
+          const key = `failfrenzy_highscores`;
+          const existing = JSON.parse(localStorage.getItem(key) || '{}');
+          const modeName = mode.name || 'classic';
+          if (!existing[modeName] || state.score > existing[modeName]) {
+            existing[modeName] = state.score;
+            localStorage.setItem(key, JSON.stringify(existing));
+          }
+        } catch {}
       }
     }, 100);
 
+    // Handle resize for responsive canvas
+    const handleResize = () => {
+      if (containerRef.current && canvasRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvasRef.current.width = rect.width * dpr;
+        canvasRef.current.height = rect.height * dpr;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
       clearInterval(stateInterval);
+      window.removeEventListener('resize', handleResize);
       game.destroy();
     };
   }, [mode]);
@@ -61,68 +89,164 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ mode, onScoreUpdate, onG
     if (!gameRef.current) return;
     gameRef.current.restart();
     setIsPaused(false);
+    setShowGameOver(false);
+    setFinalStats(null);
   }, []);
 
   return (
-    <div className="game-canvas-container relative w-full max-w-[800px] mx-auto">
+    <div ref={containerRef} className="game-canvas-container relative w-full max-w-[900px] mx-auto">
+      {/* Canvas */}
       <canvas
         id="game-canvas"
         ref={canvasRef}
-        className="w-full aspect-[4/3] border-2 border-cyan-400 rounded-xl shadow-[0_0_30px_rgba(0,255,255,0.4)] bg-[#0a0e27]"
-        style={{ imageRendering: 'auto' }}
+        className="w-full rounded-xl"
+        style={{
+          aspectRatio: '16/10',
+          border: '2px solid rgba(0,240,255,0.3)',
+          boxShadow: '0 0 40px rgba(0,240,255,0.15), inset 0 0 40px rgba(0,0,0,0.5)',
+          background: '#050818',
+          imageRendering: 'auto',
+          touchAction: 'none',
+        }}
       />
 
-      {/* Floating controls */}
-      <div className="absolute top-3 right-3 flex gap-2 z-10">
-        <button
-          onClick={handlePause}
-          className="px-3 py-1.5 text-xs font-bold bg-black/60 border border-cyan-400/60 rounded-lg text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all backdrop-blur-sm"
-        >
-          {isPaused ? '▶ PLAY' : '⏸ PAUSE'}
-        </button>
-        <button
-          onClick={handleRestart}
-          className="px-3 py-1.5 text-xs font-bold bg-black/60 border border-pink-400/60 rounded-lg text-pink-400 hover:bg-pink-500/20 hover:border-pink-400 transition-all backdrop-blur-sm"
-        >
-          ↻ RESTART
-        </button>
-      </div>
+      {/* Floating HUD - Top */}
+      {gameState && !showGameOver && (
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between z-10">
+          {/* Score */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="px-3 py-1.5 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,240,255,0.3)' }}>
+              <span className="text-[10px] sm:text-xs text-gray-500 font-mono block leading-none">SCORE</span>
+              <span className="text-lg sm:text-xl font-black text-white leading-none" style={{ textShadow: '0 0 15px rgba(0,240,255,0.6)' }}>
+                {gameState.score}
+              </span>
+            </div>
+            {gameState.combo > 1 && (
+              <div className="px-2 py-1 rounded-lg animate-pulse" style={{ background: 'rgba(255,255,0,0.15)', border: '1px solid rgba(255,255,0,0.4)' }}>
+                <span className="text-sm sm:text-base font-black" style={{ color: '#ffff00', textShadow: '0 0 10px rgba(255,255,0,0.8)' }}>
+                  x{gameState.combo}
+                </span>
+              </div>
+            )}
+          </div>
 
-      {/* Pause overlay */}
-      {isPaused && (
-        <div className="absolute inset-0 bg-black/85 flex items-center justify-center rounded-xl backdrop-blur-sm z-20">
-          <div className="text-center">
-            <h2 className="text-5xl font-bold text-cyan-400 mb-6 animate-pulse" style={{ textShadow: '0 0 30px rgba(0,255,255,0.8)' }}>
-              PAUSED
-            </h2>
+          {/* Controls */}
+          <div className="flex gap-1.5 sm:gap-2">
             <button
               onClick={handlePause}
-              className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-lg rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(0,255,255,0.5)]"
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all"
+              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,240,255,0.3)' }}
             >
-              ▶ RESUME
+              <span className="text-[#00f0ff] text-sm">{isPaused ? '▶' : '⏸'}</span>
+            </button>
+            <button
+              onClick={handleRestart}
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg backdrop-blur-md transition-all"
+              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,0,255,0.3)' }}
+            >
+              <span className="text-[#ff00ff] text-sm">↻</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Stats bar below canvas */}
-      {gameState && (
-        <div className="mt-3 grid grid-cols-4 gap-2 text-center">
-          <div className="bg-black/40 border border-cyan-400/30 rounded-lg p-2">
-            <div className="text-cyan-400 text-[10px] font-bold tracking-wider">SCORE</div>
-            <div className="text-lg font-bold text-white" style={{ textShadow: '0 0 10px rgba(0,255,255,0.5)' }}>{gameState.score}</div>
+      {/* Floating HUD - Bottom */}
+      {gameState && !showGameOver && (
+        <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between z-10">
+          <div className="flex gap-2 sm:gap-3">
+            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,45,123,0.3)' }}>
+              <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">FAILS</span>
+              <span className="text-sm sm:text-base font-bold text-white ml-1.5" style={{ textShadow: '0 0 10px rgba(255,45,123,0.5)' }}>
+                {gameState.fails}
+              </span>
+            </div>
+            <div className="px-2.5 py-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)' }}>
+              <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">TIME</span>
+              <span className="text-sm sm:text-base font-bold text-white ml-1.5" style={{ textShadow: '0 0 10px rgba(0,255,136,0.5)' }}>
+                {gameState.time.toFixed(1)}s
+              </span>
+            </div>
           </div>
-          <div className="bg-black/40 border border-pink-400/30 rounded-lg p-2">
-            <div className="text-pink-400 text-[10px] font-bold tracking-wider">FAILS</div>
-            <div className="text-lg font-bold text-white" style={{ textShadow: '0 0 10px rgba(255,0,102,0.5)' }}>{gameState.fails}</div>
+        </div>
+      )}
+
+      {/* Pause Overlay */}
+      {isPaused && !showGameOver && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.92)', backdropFilter: 'blur(8px)' }}>
+          <div className="text-center px-6">
+            <h2 className="text-4xl sm:text-5xl font-black mb-2" style={{ color: '#00f0ff', textShadow: '0 0 40px rgba(0,240,255,0.6)' }}>
+              PAUSED
+            </h2>
+            <p className="text-gray-500 text-xs sm:text-sm mb-8 font-mono">Take a breath. The neon awaits.</p>
+            <div className="flex flex-col gap-3 items-center">
+              <button
+                onClick={handlePause}
+                className="w-48 py-3 font-bold text-sm rounded-xl transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #00f0ff, #0080ff)', color: '#000', boxShadow: '0 0 20px rgba(0,240,255,0.3)' }}
+              >
+                RESUME
+              </button>
+              <button
+                onClick={handleRestart}
+                className="w-48 py-3 font-bold text-sm rounded-xl transition-all hover:scale-105"
+                style={{ background: 'rgba(255,0,255,0.15)', border: '1px solid rgba(255,0,255,0.4)', color: '#ff00ff' }}
+              >
+                RESTART
+              </button>
+            </div>
           </div>
-          <div className="bg-black/40 border border-yellow-400/30 rounded-lg p-2">
-            <div className="text-yellow-400 text-[10px] font-bold tracking-wider">COMBO</div>
-            <div className="text-lg font-bold text-white" style={{ textShadow: '0 0 10px rgba(255,255,0,0.5)' }}>x{gameState.combo}</div>
-          </div>
-          <div className="bg-black/40 border border-green-400/30 rounded-lg p-2">
-            <div className="text-green-400 text-[10px] font-bold tracking-wider">TIME</div>
-            <div className="text-lg font-bold text-white" style={{ textShadow: '0 0 10px rgba(0,255,0,0.5)' }}>{gameState.time.toFixed(1)}s</div>
+        </div>
+      )}
+
+      {/* Game Over Overlay */}
+      {showGameOver && finalStats && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl z-20" style={{ background: 'rgba(5,8,24,0.95)', backdropFilter: 'blur(12px)' }}>
+          <div className="text-center px-6 w-full max-w-sm">
+            <h2 className="text-4xl sm:text-5xl font-black mb-1" style={{ color: '#ff2d7b', textShadow: '0 0 40px rgba(255,45,123,0.6)' }}>
+              GAME OVER
+            </h2>
+            <p className="text-gray-500 text-xs font-mono mb-6">Another glorious failure.</p>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              <div className="py-3 rounded-xl" style={{ background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.2)' }}>
+                <div className="text-2xl sm:text-3xl font-black text-white">{finalStats.score}</div>
+                <div className="text-[9px] sm:text-[10px] text-[#00f0ff] font-mono tracking-wider mt-1">SCORE</div>
+              </div>
+              <div className="py-3 rounded-xl" style={{ background: 'rgba(255,45,123,0.08)', border: '1px solid rgba(255,45,123,0.2)' }}>
+                <div className="text-2xl sm:text-3xl font-black text-white">{finalStats.fails}</div>
+                <div className="text-[9px] sm:text-[10px] text-[#ff2d7b] font-mono tracking-wider mt-1">FAILS</div>
+              </div>
+              <div className="py-3 rounded-xl" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)' }}>
+                <div className="text-2xl sm:text-3xl font-black text-white">{finalStats.time.toFixed(1)}</div>
+                <div className="text-[9px] sm:text-[10px] text-[#00ff88] font-mono tracking-wider mt-1">SECONDS</div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-3 items-center">
+              <button
+                onClick={handleRestart}
+                className="w-full max-w-xs py-3.5 font-black text-base rounded-xl transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #00f0ff, #ff00ff)', color: '#000', boxShadow: '0 0 30px rgba(0,240,255,0.3)' }}
+              >
+                PLAY AGAIN
+              </button>
+              <button
+                onClick={() => {
+                  const text = `I scored ${finalStats.score} on Fail Frenzy with ${finalStats.fails} fails in ${finalStats.time.toFixed(1)}s! Can you beat me?`;
+                  if (navigator.share) {
+                    navigator.share({ title: 'Fail Frenzy', text });
+                  } else {
+                    navigator.clipboard.writeText(text);
+                  }
+                }}
+                className="w-full max-w-xs py-3 font-bold text-sm rounded-xl transition-all hover:scale-105"
+                style={{ background: 'rgba(255,255,0,0.1)', border: '1px solid rgba(255,255,0,0.3)', color: '#ffff00' }}
+              >
+                SHARE SCORE
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -136,68 +260,69 @@ interface GameModeSelectorProps {
 }
 
 export const GameModeSelector: React.FC<GameModeSelectorProps> = ({ onModeSelect }) => {
-  const modes: (GameMode & { icon: string; gradient: string })[] = [
+  const modes: { mode: GameMode; color: string; tag: string; icon: string }[] = [
     {
-      name: 'Classic',
-      description: '3 lives, progressive difficulty. Survive as long as possible!',
-      difficulty: 1,
-      icon: '🎮',
-      gradient: 'from-cyan-500/20 to-blue-600/20',
+      mode: { name: 'Classic', description: '3 lives, progressive difficulty', difficulty: 1 },
+      color: '#00f0ff',
+      tag: 'POPULAR',
+      icon: 'M13 10V3L4 14h7v7l9-11h-7z',
     },
     {
-      name: 'Time Trial',
-      description: 'Race against time! Survive for 60 seconds.',
-      duration: 60,
-      difficulty: 1.5,
-      icon: '⏱️',
-      gradient: 'from-green-500/20 to-emerald-600/20',
+      mode: { name: 'Time Trial', description: 'Survive 60 seconds', duration: 60, difficulty: 1.5 },
+      color: '#00ff88',
+      tag: '60 SEC',
+      icon: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
     },
     {
-      name: 'Infinite',
-      description: 'No game over. How high can you score?',
-      difficulty: 1,
-      icon: '♾️',
-      gradient: 'from-purple-500/20 to-pink-600/20',
+      mode: { name: 'Infinite', description: 'No game over, infinite run', difficulty: 1 },
+      color: '#ff00ff',
+      tag: 'ENDLESS',
+      icon: 'M18.6 6.62c-1.44 0-2.8.56-3.77 1.53L12 10.66 9.17 8.15C8.2 7.18 6.84 6.62 5.4 6.62 2.42 6.62 0 9.04 0 12s2.42 5.38 5.4 5.38c1.44 0 2.8-.56 3.77-1.53L12 13.34l2.83 2.51c.97.97 2.33 1.53 3.77 1.53C21.58 17.38 24 14.96 24 12s-2.42-5.38-5.4-5.38z',
     },
     {
-      name: 'Seeds',
-      description: 'Reproducible challenge. Share your seed with friends!',
-      seed: Math.floor(Date.now() / 1000),
-      difficulty: 1.2,
-      icon: '🌱',
-      gradient: 'from-yellow-500/20 to-orange-600/20',
+      mode: { name: 'Seeds', description: 'Compete on the same run', seed: Math.floor(Date.now() / 1000), difficulty: 1.2 },
+      color: '#ffff00',
+      tag: 'COMPETE',
+      icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6 max-w-3xl mx-auto">
-      {modes.map((mode) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
+      {modes.map(({ mode, color, tag, icon }) => (
         <button
           key={mode.name}
           onClick={() => onModeSelect(mode)}
-          className={`group relative bg-gradient-to-br ${mode.gradient} border-2 border-cyan-400/40 rounded-xl p-5 sm:p-6 hover:border-cyan-400 hover:shadow-[0_0_40px_rgba(0,255,255,0.3)] transition-all duration-300 text-left`}
+          className="group relative text-left p-5 sm:p-6 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          style={{
+            background: `linear-gradient(135deg, ${color}08 0%, #0a0e27 100%)`,
+            border: `2px solid ${color}25`,
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.borderColor = `${color}60`;
+            (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${color}15`;
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.borderColor = `${color}25`;
+            (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+          }}
         >
-          <div className="text-3xl mb-3">{mode.icon}</div>
-          <h3 className="text-xl sm:text-2xl font-bold text-cyan-400 group-hover:text-white mb-2 transition-colors">
-            {mode.name}
-          </h3>
-          <p className="text-gray-400 text-xs sm:text-sm mb-4 leading-relaxed">
-            {mode.description}
-          </p>
-          <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs">
-            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-400/30">
-              Difficulty: {mode.difficulty}x
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${color}12`, border: `1px solid ${color}25` }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={color}><path d={icon} /></svg>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black tracking-wide" style={{ color }}>{mode.name}</h3>
+            </div>
+            <span className="text-[8px] sm:text-[9px] font-bold px-2 py-0.5 rounded-full tracking-widest"
+              style={{ background: `${color}12`, color, border: `1px solid ${color}20` }}>
+              {tag}
             </span>
-            {mode.duration && (
-              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-400/30">
-                {mode.duration}s
-              </span>
-            )}
-            {mode.seed && (
-              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-400/30">
-                Seed: {mode.seed}
-              </span>
-            )}
+          </div>
+          <p className="text-gray-500 text-xs sm:text-sm">{mode.description}</p>
+          <div className="mt-3 flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity" style={{ color }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <span>START</span>
           </div>
         </button>
       ))}
@@ -218,15 +343,12 @@ export const GamePage: React.FC = () => {
     } catch {}
     return 0;
   });
-  const [lastScore, setLastScore] = useState<{ score: number; fails: number; time: number } | null>(null);
 
   const handleModeSelect = (mode: GameMode) => {
     setSelectedMode(mode);
-    setLastScore(null);
   };
 
   const handleGameOver = (score: number, fails: number, time: number) => {
-    setLastScore({ score, fails, time });
     if (score > highScore) {
       setHighScore(score);
     }
@@ -237,107 +359,76 @@ export const GamePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white overflow-hidden">
-      {/* Animated background grid */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
+    <div className="min-h-screen text-white overflow-hidden" style={{ background: '#050818' }}>
+      {/* Subtle grid */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(0,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.3) 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
+          backgroundImage: 'linear-gradient(rgba(0,240,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.4) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
         }}
       />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-cyan-400/30 bg-black/60 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            <span className="text-cyan-400" style={{ textShadow: '0 0 20px rgba(0,255,255,0.6)' }}>FAIL</span>
-            <span className="text-pink-500 ml-1" style={{ textShadow: '0 0 20px rgba(255,0,102,0.6)' }}>FRENZY</span>
-          </h1>
-          <div className="flex gap-2 sm:gap-4 text-xs sm:text-sm">
-            <div className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-400/40 rounded-lg">
-              Best: <span className="font-bold text-cyan-400">{highScore}</span>
+      <header className="relative z-10 border-b py-3 sm:py-4 px-4" style={{ borderColor: 'rgba(0,240,255,0.1)', background: 'rgba(5,8,24,0.8)', backdropFilter: 'blur(12px)' }}>
+        <div className="max-w-[900px] mx-auto flex items-center justify-between">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <span className="text-xl sm:text-2xl font-black tracking-tight">
+                <span style={{ color: '#00f0ff', textShadow: '0 0 15px rgba(0,240,255,0.5)' }}>FAIL</span>
+                <span style={{ color: '#ff00ff', textShadow: '0 0 15px rgba(255,0,255,0.5)' }} className="ml-0.5">FRENZY</span>
+              </span>
             </div>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {highScore > 0 && (
+              <div className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono" style={{ background: 'rgba(255,255,0,0.08)', border: '1px solid rgba(255,255,0,0.2)' }}>
+                <span className="text-gray-500">BEST </span>
+                <span className="font-bold" style={{ color: '#ffff00' }}>{highScore}</span>
+              </div>
+            )}
+            {selectedMode && (
+              <button
+                onClick={handleBackToMenu}
+                className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all hover:scale-105"
+                style={{ background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.2)', color: '#00f0ff' }}
+              >
+                MENU
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 container mx-auto px-4 py-6 sm:py-8">
+      <main className="relative z-10 px-4 py-6 sm:py-8">
         {!selectedMode ? (
-          <>
-            <div className="text-center mb-6 sm:mb-10">
-              <h2 className="text-3xl sm:text-5xl font-black mb-3 sm:mb-4 tracking-tight">
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-pink-500 bg-clip-text text-transparent">
-                  SELECT MODE
-                </span>
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 tracking-tight">
+                <span style={{
+                  background: 'linear-gradient(90deg, #00f0ff, #ff00ff)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}>SELECT MODE</span>
               </h2>
-              <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-                Choose your challenge and master the art of failing forward
-              </p>
+              <p className="text-gray-600 text-xs sm:text-sm font-mono">Choose your challenge. Master the chaos.</p>
             </div>
             <GameModeSelector onModeSelect={handleModeSelect} />
-          </>
+          </div>
         ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <button
-                onClick={handleBackToMenu}
-                className="px-4 py-2 bg-black/40 border border-gray-700 rounded-lg hover:border-cyan-400 transition-all text-sm text-gray-400 hover:text-cyan-400"
-              >
-                ← Menu
-              </button>
-              <div className="text-right">
-                <h2 className="text-xl sm:text-2xl font-bold text-cyan-400">
-                  {selectedMode.name}
-                </h2>
-                <p className="text-gray-500 text-xs">{selectedMode.description}</p>
-              </div>
+          <div className="max-w-[900px] mx-auto">
+            <div className="mb-3 sm:mb-4 text-center">
+              <h2 className="text-lg sm:text-xl font-black tracking-wider" style={{ color: '#00f0ff', textShadow: '0 0 20px rgba(0,240,255,0.4)' }}>
+                {selectedMode.name?.toUpperCase()}
+              </h2>
             </div>
-
             <GameCanvas
               mode={selectedMode}
               onGameOver={handleGameOver}
             />
-
-            {lastScore && (
-              <div className="mt-6 text-center">
-                <div className="inline-block bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border-2 border-cyan-400/50 rounded-xl p-6 backdrop-blur-sm">
-                  <h3 className="text-2xl font-bold text-pink-400 mb-4" style={{ textShadow: '0 0 20px rgba(255,0,102,0.5)' }}>
-                    GAME OVER
-                  </h3>
-                  <div className="grid grid-cols-3 gap-6 text-center">
-                    <div>
-                      <div className="text-gray-500 text-xs">SCORE</div>
-                      <div className="text-2xl sm:text-3xl font-bold text-white">{lastScore.score}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-500 text-xs">FAILS</div>
-                      <div className="text-2xl sm:text-3xl font-bold text-white">{lastScore.fails}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-500 text-xs">TIME</div>
-                      <div className="text-2xl sm:text-3xl font-bold text-white">{lastScore.time.toFixed(1)}s</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setSelectedMode({ ...selectedMode })}
-                    className="mt-4 px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold rounded-lg hover:from-cyan-400 hover:to-blue-500 transition-all text-sm"
-                  >
-                    PLAY AGAIN
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-cyan-400/20 bg-black/40 backdrop-blur-sm mt-12">
-        <div className="container mx-auto px-4 py-4 text-center text-gray-600 text-xs">
-          <p>FAIL FRENZY v2.0.0 — Premium Edition</p>
-        </div>
-      </footer>
     </div>
   );
 };

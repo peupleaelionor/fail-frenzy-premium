@@ -43,84 +43,86 @@
 }
 
 :root {
-  /* Glitch Pop Arcade Theme */
-  --primary: #00ffff;
+  --primary: #00f0ff;
   --primary-foreground: #000000;
   --sidebar-primary: #ff00ff;
   --sidebar-primary-foreground: #ffffff;
-  --chart-1: #00ffff;
+  --chart-1: #00f0ff;
   --chart-2: #ff00ff;
   --chart-3: #ffff00;
   --chart-4: #ff6600;
-  --chart-5: #00ff00;
-  --radius: 0rem;
-  --background: #0a0e27;
+  --chart-5: #00ff88;
+  --radius: 0.5rem;
+  --background: #050818;
   --foreground: #ffffff;
-  --card: #1a1f3a;
-  --card-foreground: #00ffff;
-  --popover: #0a0e27;
+  --card: #0d1230;
+  --card-foreground: #00f0ff;
+  --popover: #050818;
   --popover-foreground: #ffffff;
   --secondary: #ff00ff;
   --secondary-foreground: #ffffff;
-  --muted: #333366;
-  --muted-foreground: #00ffff;
+  --muted: #1a2040;
+  --muted-foreground: #00f0ff;
   --accent: #ffff00;
   --accent-foreground: #000000;
-  --destructive: #ff0066;
+  --destructive: #ff2d7b;
   --destructive-foreground: #ffffff;
-  --border: #00ffff;
-  --input: #1a1f3a;
+  --border: rgba(0, 240, 255, 0.15);
+  --input: #0d1230;
   --ring: #ff00ff;
-  --sidebar: #0a0e27;
-  --sidebar-foreground: #00ffff;
+  --sidebar: #050818;
+  --sidebar-foreground: #00f0ff;
   --sidebar-accent: #ff00ff;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #00ffff;
+  --sidebar-border: rgba(0, 240, 255, 0.15);
   --sidebar-ring: #ffff00;
 }
 
 .dark {
-  /* Glitch Pop Arcade - Dark Mode (same as light) */
-  --primary: #00ffff;
+  --primary: #00f0ff;
   --primary-foreground: #000000;
   --sidebar-primary: #ff00ff;
   --sidebar-primary-foreground: #ffffff;
-  --background: #0a0e27;
+  --background: #050818;
   --foreground: #ffffff;
-  --card: #1a1f3a;
-  --card-foreground: #00ffff;
-  --popover: #0a0e27;
+  --card: #0d1230;
+  --card-foreground: #00f0ff;
+  --popover: #050818;
   --popover-foreground: #ffffff;
   --secondary: #ff00ff;
   --secondary-foreground: #ffffff;
-  --muted: #333366;
-  --muted-foreground: #00ffff;
+  --muted: #1a2040;
+  --muted-foreground: #00f0ff;
   --accent: #ffff00;
   --accent-foreground: #000000;
-  --destructive: #ff0066;
+  --destructive: #ff2d7b;
   --destructive-foreground: #ffffff;
-  --border: #00ffff;
-  --input: #1a1f3a;
+  --border: rgba(0, 240, 255, 0.15);
+  --input: #0d1230;
   --ring: #ff00ff;
-  --chart-1: #00ffff;
+  --chart-1: #00f0ff;
   --chart-2: #ff00ff;
   --chart-3: #ffff00;
   --chart-4: #ff6600;
-  --chart-5: #00ff00;
-  --sidebar: #0a0e27;
-  --sidebar-foreground: #00ffff;
+  --chart-5: #00ff88;
+  --sidebar: #050818;
+  --sidebar-foreground: #00f0ff;
   --sidebar-accent: #ff00ff;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #00ffff;
+  --sidebar-border: rgba(0, 240, 255, 0.15);
   --sidebar-ring: #ffff00;
 }
 
+/* === BASE === */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -133,27 +135,25 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+  /* Prevent text selection during gameplay */
+  canvas {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
+/* === COMPONENTS === */
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
 
@@ -164,84 +164,85 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
 
-  /* Glitch Pop Arcade Custom Styles */
-  .glitch-border {
-    border: 4px solid #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), inset 0 0 10px rgba(0, 255, 255, 0.1);
-  }
-
-  .glitch-border-magenta {
-    border: 4px solid #ff00ff;
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5), inset 0 0 10px rgba(255, 0, 255, 0.1);
-  }
-
+  /* === GLITCH EFFECTS === */
   .glitch-text {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-shadow: 2px 2px 0 #ff00ff, 4px 4px 0 #00ffff;
-  }
-
-  .glitch-button {
-    border: 3px solid #00ffff;
-    background: #0a0e27;
-    color: #00ffff;
-    padding: 12px 24px;
-    font-weight: bold;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.1s;
-    text-transform: uppercase;
+    font-weight: 900;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
-  .glitch-button:hover {
-    background: #00ffff;
-    color: #0a0e27;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8), inset 0 0 20px rgba(255, 0, 255, 0.3);
-    transform: translate(-2px, -2px);
-  }
-
-  .glitch-button:active {
-    transform: translate(2px, 2px);
+  .glitch-border {
+    border: 2px solid rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.05);
   }
 
   .glitch-card {
-    background: linear-gradient(135deg, #1a1f3a 0%, #0a0e27 100%);
-    border: 2px solid #ff00ff;
-    padding: 24px;
+    background: linear-gradient(135deg, rgba(13, 18, 48, 0.8) 0%, rgba(5, 8, 24, 0.9) 100%);
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
     position: relative;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+    transition: all 0.3s ease;
   }
 
-  .glitch-card::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
-    background-size: 400% 400%;
-    z-index: -1;
-    opacity: 0;
-    animation: glitch-shimmer 3s ease-in-out infinite;
+  .glitch-card:hover {
+    border-color: rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
   }
 
+  .glitch-button {
+    border: 2px solid #00f0ff;
+    background: rgba(0, 240, 255, 0.08);
+    color: #00f0ff;
+    padding: 0.75rem 1.5rem;
+    font-weight: 800;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 0.75rem;
+  }
+
+  .glitch-button:hover {
+    background: #00f0ff;
+    color: #050818;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .glitch-button:active {
+    transform: translateY(1px);
+  }
+
+  /* === NEON GLOW EFFECTS === */
+  .neon-glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
+  }
+
+  .neon-glow-magenta {
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3), 0 0 40px rgba(255, 0, 255, 0.1);
+  }
+
+  .neon-glow-yellow {
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3), 0 0 40px rgba(255, 255, 0, 0.1);
+  }
+
+  /* === SCANLINES === */
   .scanlines {
     position: relative;
     overflow: hidden;
@@ -256,8 +257,8 @@
     bottom: 0;
     background: repeating-linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.15),
-      rgba(0, 0, 0, 0.15) 1px,
+      rgba(0, 0, 0, 0.08),
+      rgba(0, 0, 0, 0.08) 1px,
       transparent 1px,
       transparent 2px
     );
@@ -265,44 +266,75 @@
     z-index: 10;
   }
 
+  /* === ANIMATIONS === */
   @keyframes glitch-shimmer {
-    0% {
-      opacity: 0;
-      background-position: 0% 50%;
-    }
-    50% {
-      opacity: 0.5;
-      background-position: 100% 50%;
-    }
-    100% {
-      opacity: 0;
-      background-position: 0% 50%;
-    }
-  }
-
-  @keyframes glitch-flicker {
-    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-      text-shadow: 2px 2px 0 #ff00ff, 4px 4px 0 #00ffff;
-    }
-    20%, 24%, 55% {
-      text-shadow: -2px -2px 0 #ffff00, 2px 2px 0 #ff00ff;
-    }
-  }
-
-  .glitch-title {
-    animation: glitch-flicker 0.3s infinite;
+    0% { opacity: 0; background-position: 0% 50%; }
+    50% { opacity: 0.3; background-position: 100% 50%; }
+    100% { opacity: 0; background-position: 0% 50%; }
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 5px rgba(0, 255, 255, 0.5), 0 0 10px rgba(255, 0, 255, 0.3);
-    }
-    50% {
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 30px rgba(255, 0, 255, 0.6);
-    }
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.3), 0 0 20px rgba(255, 0, 255, 0.15); }
+    50% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.3); }
   }
 
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+    50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  /* === MOBILE OPTIMIZATIONS === */
+  @media (max-width: 640px) {
+    .game-canvas-container {
+      margin-left: -1rem;
+      margin-right: -1rem;
+      max-width: calc(100% + 2rem);
+    }
+    .game-canvas-container canvas {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+  }
+
+  /* === TOUCH FEEDBACK === */
+  @media (hover: none) {
+    button:active {
+      opacity: 0.8;
+      transform: scale(0.97);
+    }
+  }
+
+  /* === SCROLLBAR === */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050818;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 240, 255, 0.4);
   }
 }
