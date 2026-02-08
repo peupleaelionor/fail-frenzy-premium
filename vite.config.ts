@@ -5,7 +5,7 @@ import path from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: '/fail-frenzy-premium/',
+  base: '/',
   plugins: [
     react(), 
     tailwindcss(), 
@@ -35,6 +35,6 @@ export default defineConfig({
     port: 3000,
     strictPort: false,
     host: true,
-    allowedHosts: ['.manus.computer', '.manus.m.manus.computer']
+    allowedHosts: true
   }
 });

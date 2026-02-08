@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build --legacy-peer-deps",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "env": {
+    "VITE_ANALYTICS_ENDPOINT": "@vite_analytics_endpoint",
+    "VITE_ANALYTICS_WEBSITE_ID": "@vite_analytics_website_id"
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

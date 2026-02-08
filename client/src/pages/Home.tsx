@@ -62,7 +62,7 @@ export default function Home() {
           {/* Arcade room background */}
           <div className="absolute bottom-0 left-0 right-0 h-[50vh] opacity-20"
             style={{
-              backgroundImage: 'url(/images/assets/hero-arcade-room.jpeg)',
+              backgroundImage: `url(${import.meta.env.BASE_URL}images/assets/hero-arcade-room.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center bottom',
               maskImage: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)',
@@ -402,12 +402,87 @@ export default function Home() {
         </div>
       </section>
 
+      {/* === APP COMING SOON SECTION === */}
+      <section className="relative py-16 sm:py-24 px-4" style={{ background: 'linear-gradient(180deg, transparent 0%, #0a0e2a 50%, transparent 100%)' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 tracking-tight">
+            <span style={{ color: '#ffff00', textShadow: '0 0 30px rgba(255,255,0,0.5)' }}>APP MOBILE</span>
+            <span className="text-white ml-3">BIENT\u00D4T DISPONIBLE</span>
+          </h2>
+          <p className="text-gray-400 text-sm sm:text-base mb-10 max-w-xl mx-auto">
+            Fail Frenzy arrive sur iOS et Android. Emportez le chaos partout avec vous. Inscrivez-vous pour \u00EAtre notifi\u00E9 du lancement.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-10">
+            {/* iOS Badge */}
+            <div className="group relative px-8 py-4 rounded-2xl border cursor-pointer transition-all duration-300 hover:scale-105"
+              style={{ background: 'rgba(0,240,255,0.05)', borderColor: 'rgba(0,240,255,0.3)' }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,240,255,0.8)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,240,255,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,240,255,0.3)';
+                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+              }}>
+              <div className="flex items-center gap-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#00f0ff">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                <div className="text-left">
+                  <div className="text-[10px] text-gray-500 font-mono tracking-wider">BIENT\u00D4T SUR</div>
+                  <div className="text-lg font-bold" style={{ color: '#00f0ff' }}>App Store</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Android Badge */}
+            <div className="group relative px-8 py-4 rounded-2xl border cursor-pointer transition-all duration-300 hover:scale-105"
+              style={{ background: 'rgba(0,255,136,0.05)', borderColor: 'rgba(0,255,136,0.3)' }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,255,136,0.8)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,255,136,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,255,136,0.3)';
+                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+              }}>
+              <div className="flex items-center gap-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#00ff88">
+                  <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/>
+                </svg>
+                <div className="text-left">
+                  <div className="text-[10px] text-gray-500 font-mono tracking-wider">BIENT\u00D4T SUR</div>
+                  <div className="text-lg font-bold" style={{ color: '#00ff88' }}>Google Play</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Countdown / Hype bar */}
+          <div className="max-w-md mx-auto">
+            <div className="flex justify-between text-[10px] font-mono tracking-wider text-gray-500 mb-2">
+              <span>D\u00C9VELOPPEMENT</span>
+              <span style={{ color: '#ffff00' }}>78%</span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,0,0.1)' }}>
+              <div className="h-full rounded-full" style={{
+                width: '78%',
+                background: 'linear-gradient(90deg, #ffff00, #ff00ff)',
+                boxShadow: '0 0 15px rgba(255,255,0,0.4)',
+                animation: 'progressPulse 2s ease-in-out infinite',
+              }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* === FINAL CTA === */}
       <section className="relative py-20 sm:py-32 px-4 text-center">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 opacity-15"
             style={{
-              backgroundImage: 'url(/images/assets/ui-pattern-arcade.jpeg)',
+              backgroundImage: `url(${import.meta.env.BASE_URL}images/assets/ui-pattern-arcade.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'blur(20px) saturate(1.5)',
@@ -429,7 +504,7 @@ export default function Home() {
             }}>FAIL FORWARD?</span>
           </h2>
           <p className="text-gray-400 text-sm sm:text-base mb-10 max-w-md mx-auto">
-            Join the loop. Master the chaos. Celebrate every failure.
+            Rejoins la boucle. Ma\u00EEtrise le chaos. C\u00E9l\u00E8bre chaque \u00E9chec.
           </p>
           <Link href="/game">
             <button className="group relative transition-all duration-300 hover:scale-110 active:scale-95">
@@ -452,12 +527,13 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <img src={`${import.meta.env.BASE_URL}images/assets/pulse_clicker_logo_512.png`} alt="FF" className="w-7 h-7"
               style={{ filter: 'drop-shadow(0 0 5px rgba(0,240,255,0.4))' }} />
-            <span className="text-gray-600 text-xs font-mono">Fail Frenzy Studios 2026</span>
+            <span className="text-gray-600 text-xs font-mono">&copy; 2026 Fail Frenzy Studios</span>
           </div>
           <div className="flex gap-6 text-gray-600 text-xs font-mono">
             <a href="#" className="hover:text-[#00f0ff] transition-colors">Twitter</a>
             <a href="#" className="hover:text-[#ff00ff] transition-colors">TikTok</a>
             <a href="#" className="hover:text-[#ffff00] transition-colors">Discord</a>
+            <a href="#" className="hover:text-[#00ff88] transition-colors">Instagram</a>
           </div>
         </div>
       </footer>
@@ -487,6 +563,10 @@ export default function Home() {
         @keyframes neonSpin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes progressPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
         }
       `}</style>
     </div>
